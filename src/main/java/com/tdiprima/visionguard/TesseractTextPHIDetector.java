@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author tdiprima
  */
-public class TesseractTextPHIDetector implements TextPHIDetector {
+public class TesseractTextPHIDetector implements TextDetector {
 
     private Tesseract tesseract;
 

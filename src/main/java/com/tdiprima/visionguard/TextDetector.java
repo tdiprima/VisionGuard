@@ -8,7 +8,7 @@ import java.util.List;
  * 
  * @author tdiprima
  */
-public interface TextPHIDetector {
+public interface TextDetector {
     class TextRegion {
         public int x, y, width, height;
         public String text;

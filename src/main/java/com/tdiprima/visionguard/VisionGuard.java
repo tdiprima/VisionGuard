@@ -15,8 +15,8 @@ public class VisionGuard {
 
     public static void main(String[] args) {
         // Load the SPI
-        ServiceLoader<TextPHIDetector> loader = ServiceLoader.load(TextPHIDetector.class);
-        TextPHIDetector detector = loader.iterator().next();
+        ServiceLoader<TextDetector> loader = ServiceLoader.load(TextDetector.class);
+        TextDetector detector = loader.iterator().next();
 
         // Setup the detector (Tesseract data path)
         detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng");
@@ -34,11 +34,11 @@ public class VisionGuard {
         }
 
         // Perform detection
-        TextPHIDetector.DetectionResult result = detector.detect(image, null);
+        TextDetector.DetectionResult result = detector.detect(image, null);
 
         // Process results
         System.out.println("Detected Text Regions:");
-        for (TextPHIDetector.TextRegion region : result.regions) {
+        for (TextDetector.TextRegion region : result.regions) {
             System.out.println("Text: " + region.text);
             System.out.println("Bounding Box: [" + region.x + ", " + region.y + ", "
                     + region.width + ", " + region.height + "]");
