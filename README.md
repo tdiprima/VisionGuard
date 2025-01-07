@@ -40,6 +40,6 @@ Contributions are welcome. Fork the repo, create a branch, make your changes, an
 
 ## License
 
-Licensed under the MIT License.
+Licensed under the [MIT License](LICENSE).
 
 <br>
