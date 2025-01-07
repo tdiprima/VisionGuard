@@ -25,7 +25,7 @@ VisionGuard is a Java-based tool for detecting and protecting sensitive text in 
 2. Run the JAR:
 
    ```sh
-   java -jar target/VisionGuard-1.0.jar
+   java -jar target/VisionGuard-1.0-jar-with-dependencies.jar
    ```
 
 3. Ensure you configure Tesseract's data path and language:
