@@ -19,6 +19,12 @@ public class VisionGuard {
             System.out.println("Actions: OUTLINE, MASK, MOVE_TO_FOLDER");
             return;
         }
+        
+
+        System.out.println("*********");
+        System.out.println("DYLD_LIBRARY_PATH: " + System.getenv("DYLD_LIBRARY_PATH"));
+        System.out.println("java.library.path: " + System.getProperty("java.library.path"));
+        System.out.println("*********");
 
         String imagePath = args[0];
         String actionStr = args[1].toUpperCase();
