@@ -49,7 +49,7 @@ VisionGuard is a Java-based tool for detecting and protecting sensitive text in 
    ```java
    detector.setupParameters("/path/to/tessdata", "eng");
 
-   # Example:
+   // Example:
    detector.setupParameters("/usr/share/tesseract-ocr/4.00/tessdata", "eng");
    ```
 
