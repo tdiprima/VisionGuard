@@ -62,6 +62,13 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
 - Supported image formats: PNG, JPEG
 - Recommended image resolution: 300 DPI for best OCR performance.
 
+## Tools
+
+`parse_response_log.py`
+
+A Python script to help interpret and analyze results from the Ollama vision model. This tool is optional but can aid in debugging and understanding model outputs.
+
+
 ## Contributing
 
 Contributions are welcome! Fork the repo, create a branch, make your changes, and open a pull request.
