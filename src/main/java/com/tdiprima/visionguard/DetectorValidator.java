@@ -1,6 +1,8 @@
 package com.tdiprima.visionguard;
 
 import com.tdiprima.visionguard.TextDetector.DetectionResult;
+import com.tdiprima.visionguard.TextDetector.TextRegion;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,45 +11,46 @@ import java.util.List;
 
 public class DetectorValidator {
 
-    public static void validate(DetectionResult result1, DetectionResult result2, String outputPath) {
-        List<TextDetector.TextRegion> regions1 = result1.regions;
-        List<TextDetector.TextRegion> regions2 = result2.regions;
+    public static void validate(DetectionResult tesseractResult, DetectionResult ollamaResult, String outputPath) {
+        List<TextRegion> tesseractRegions = tesseractResult.regions;
+        List<TextRegion> ollamaRegions = ollamaResult.regions;
 
-        List<TextDetector.TextRegion> missedRegions = new ArrayList<>();
-        List<TextDetector.TextRegion> mismatchedRegions = new ArrayList<>();
+        List<TextRegion> missedRegions = new ArrayList<>();
+        List<TextRegion> mismatchedRegions = new ArrayList<>();
 
-        // Compare regions between results
-        for (TextDetector.TextRegion r1 : regions1) {
+        // Compare Tesseract regions to Ollama
+        for (TextRegion tesseractRegion : tesseractRegions) {
             boolean matched = false;
-            for (TextDetector.TextRegion r2 : regions2) {
-                if (overlaps(r1, r2) && similarText(r1.text, r2.text)) {
+            for (TextRegion ollamaRegion : ollamaRegions) {
+                if (overlaps(tesseractRegion, ollamaRegion) && similarText(tesseractRegion.text, ollamaRegion.text)) {
                     matched = true;
                     break;
                 }
             }
             if (!matched) {
-                missedRegions.add(r1);
+                missedRegions.add(tesseractRegion); // Regions found by Tesseract but not by Ollama
             }
         }
 
-        for (TextDetector.TextRegion r2 : regions2) {
+        // Compare Ollama regions to Tesseract
+        for (TextRegion ollamaRegion : ollamaRegions) {
             boolean matched = false;
-            for (TextDetector.TextRegion r1 : regions1) {
-                if (overlaps(r2, r1) && similarText(r2.text, r1.text)) {
+            for (TextRegion tesseractRegion : tesseractRegions) {
+                if (overlaps(ollamaRegion, tesseractRegion) && similarText(ollamaRegion.text, tesseractRegion.text)) {
                     matched = true;
                     break;
                 }
             }
             if (!matched) {
-                mismatchedRegions.add(r2);
+                mismatchedRegions.add(ollamaRegion); // Regions found by Ollama but not by Tesseract
             }
         }
 
-        // Save discrepancy report
+        // Save discrepancy report with more context
         saveDiscrepancyReport(missedRegions, mismatchedRegions, outputPath);
     }
 
-    private static boolean overlaps(TextDetector.TextRegion r1, TextDetector.TextRegion r2) {
+    private static boolean overlaps(TextRegion r1, TextRegion r2) {
         // Check if bounding boxes overlap significantly
         int intersectionArea = Math.max(0, Math.min(r1.x + r1.width, r2.x + r2.width) - Math.max(r1.x, r2.x))
                 * Math.max(0, Math.min(r1.y + r1.height, r2.y + r2.height) - Math.max(r1.y, r2.y));
@@ -62,19 +65,16 @@ public class DetectorValidator {
         return text1.equalsIgnoreCase(text2);
     }
 
-    private static void saveDiscrepancyReport(List<TextDetector.TextRegion> missedRegions,
-                                              List<TextDetector.TextRegion> mismatchedRegions,
-                                              String outputPath) {
-        // Save missed and mismatched regions to a report file
+    private static void saveDiscrepancyReport(List<TextRegion> missedRegions, List<TextRegion> mismatchedRegions, String outputPath) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
-            writer.write("Missed Regions:\n");
-            for (TextDetector.TextRegion r : missedRegions) {
+            writer.write("Missed Regions (Found by Tesseract but not by Ollama):\n");
+            for (TextRegion r : missedRegions) {
                 writer.write(String.format("Text: %s, Bounding Box: [%d, %d, %d, %d]\n",
-                        r.text, r.x, r.y, r.width, r.height));
+                        r.text.trim(), r.x, r.y, r.width, r.height));
             }
 
-            writer.write("\nMismatched Regions:\n");
-            for (TextDetector.TextRegion r : mismatchedRegions) {
+            writer.write("\nMismatched Regions (Found by Ollama but not by Tesseract):\n");
+            for (TextRegion r : mismatchedRegions) {
                 writer.write(String.format("Text: %s, Bounding Box: [%d, %d, %d, %d]\n",
                         r.text, r.x, r.y, r.width, r.height));
             }
