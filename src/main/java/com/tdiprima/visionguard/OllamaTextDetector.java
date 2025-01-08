@@ -8,11 +8,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.imageio.ImageIO;
+import java.util.logging.Logger;
 
 public class OllamaTextDetector implements TextDetector {
 
     private String ollamaServerUrl;
+    private static final Logger logger = Logger.getLogger(OllamaTextDetector.class.getName());
 
     @Override
     public void setupParameters(String... params) {
@@ -34,11 +37,17 @@ public class OllamaTextDetector implements TextDetector {
 
             // Create JSON payload
             String payload = String.format(
-                    "{\"model\": \"llama3.2-vision:latest\", \"prompt\": \"Find all text and return bounding boxes. Just return a JSON object with a 'regions' array containing objects containing x, y, width, height, and text.\", \"image\": \"%s\"}",
+                    "{"
+                    + "\"model\": \"llama3.2-vision:latest\", "
+                    + "\"system\": \"You are a JSON output generator. Your sole task is to analyze the input image and extract text regions. Your response must strictly conform to the format {'regions': [{'x': <x-coordinate>, 'y': <y-coordinate>, 'width': <width>, 'height': <height>, 'text': '<detected-text>'}, ...]}. You will not provide explanations, preambles, or any other output. If the image cannot be processed, respond only with {'regions': []}.\", "
+                    + "\"prompt\": \"Find all text in the provided image and return their bounding boxes in JSON format. Follow the structure strictly. Do not include any other content or explanation.\", "
+                    + "\"image\": \"%s\""
+                    + "}",
                     java.util.Base64.getEncoder().encodeToString(imageBytes)
             );
 
             // Send POST request
+            System.out.println("*** QUERYING LLAMA VISION MODEL ***");
             URL url = new URL(ollamaServerUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
@@ -58,7 +67,7 @@ public class OllamaTextDetector implements TextDetector {
 
             // Parse response JSON
             String responseJson = responseBuilder.toString();
-            System.out.println("responseJson: " + responseJson);
+            // System.out.println("responseJson: " + responseJson);
             regions = parseOllamaResponse(responseJson);
 
         } catch (Exception e) {
@@ -69,24 +78,50 @@ public class OllamaTextDetector implements TextDetector {
 
     private List<TextRegion> parseOllamaResponse(String responseJson) {
         List<TextRegion> regions = new ArrayList<>();
+        StringBuilder reconstructedResponse = new StringBuilder();
+
         try {
-            // Use a JSON library like Jackson or Gson
-            com.google.gson.JsonObject jsonObject = com.google.gson.JsonParser.parseString(responseJson).getAsJsonObject();
-            com.google.gson.JsonArray regionsArray = jsonObject.getAsJsonArray("regions");
+            // Split the concatenated JSON objects
+            String[] jsonObjects = responseJson.split("\\}\\{");
 
-            for (com.google.gson.JsonElement element : regionsArray) {
-                com.google.gson.JsonObject regionObject = element.getAsJsonObject();
-                int x = regionObject.get("x").getAsInt();
-                int y = regionObject.get("y").getAsInt();
-                int width = regionObject.get("width").getAsInt();
-                int height = regionObject.get("height").getAsInt();
-                String text = regionObject.get("text").getAsString();
+            for (int i = 0; i < jsonObjects.length; i++) {
+                // Fix JSON fragments (add missing braces after splitting)
+                if (i > 0) {
+                    jsonObjects[i] = "{" + jsonObjects[i];
+                }
+                if (i < jsonObjects.length - 1) {
+                    jsonObjects[i] = jsonObjects[i] + "}";
+                }
 
-                regions.add(new TextRegion(x, y, width, height, text));
+                // Parse each object to extract the "response" field
+                com.google.gson.JsonObject jsonObject = com.google.gson.JsonParser.parseString(jsonObjects[i]).getAsJsonObject();
+                if (jsonObject.has("response")) {
+                    String responsePart = jsonObject.get("response").getAsString();
+                    reconstructedResponse.append(responsePart.replace("\n", "").trim());
+                }
+            }
+
+            // Parse the reconstructed JSON
+            String finalResponseJson = reconstructedResponse.toString();
+            com.google.gson.JsonObject finalResponseObject = com.google.gson.JsonParser.parseString(finalResponseJson).getAsJsonObject();
+            if (finalResponseObject.has("regions")) {
+                com.google.gson.JsonArray regionsArray = finalResponseObject.getAsJsonArray("regions");
+
+                for (com.google.gson.JsonElement element : regionsArray) {
+                    com.google.gson.JsonObject regionObject = element.getAsJsonObject();
+                    int x = regionObject.get("x").getAsInt();
+                    int y = regionObject.get("y").getAsInt();
+                    int width = regionObject.get("width").getAsInt();
+                    int height = regionObject.get("height").getAsInt();
+                    String text = regionObject.get("text").getAsString();
+
+                    regions.add(new TextRegion(x, y, width, height, text));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return regions;
     }
 
@@ -166,7 +201,7 @@ public class OllamaTextDetector implements TextDetector {
         try {
             File outputFile = new File(outputPath);
             ImageIO.write(image, "png", outputFile);
-            System.out.println("Image saved to: " + outputPath);
+            logger.log(Level.INFO, "Image saved to: {0}", outputPath);
         } catch (IOException e) {
             System.err.println("Failed to save image: " + e.getMessage());
         }

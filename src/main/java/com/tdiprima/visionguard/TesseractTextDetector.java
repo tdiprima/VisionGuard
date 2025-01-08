@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.imageio.ImageIO;
+import java.util.logging.Logger;
 
 /**
  * Concrete implementation using Tesseract
@@ -17,6 +19,7 @@ import javax.imageio.ImageIO;
 public class TesseractTextDetector implements TextDetector {
 
     private Tesseract tesseract;
+    private static final Logger logger = Logger.getLogger(TesseractTextDetector.class.getName());
 
     @Override
     public void setupParameters(String... params) {
@@ -98,7 +101,7 @@ public class TesseractTextDetector implements TextDetector {
         try {
             File outputFile = new File(outputPath);
             ImageIO.write(image, "png", outputFile);
-            System.out.println("Image saved to: " + outputPath);
+            logger.log(Level.INFO, "Image saved to: {0}", outputPath);
         } catch (IOException e) {
             System.err.println("Failed to save image: " + e.getMessage());
         }
