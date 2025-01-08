@@ -60,4 +60,9 @@ public class TesseractTextDetector implements TextDetector {
         return new DetectionResult(modifiedImage, regions);
     }
 
+    @Override
+    public void applyAction(Action action, DetectionResult result, String outputPath) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }

@@ -9,6 +9,8 @@ import java.util.List;
  * @author tdiprima
  */
 public interface TextDetector {
+
+    // Represents a detected region of text
     class TextRegion {
         public int x, y, width, height;
         public String text;
@@ -22,13 +24,7 @@ public interface TextDetector {
         }
     }
 
-    // Process the BufferedImage and DICOM metadata
-    DetectionResult detect(BufferedImage image, Object dicomMetadata);
-
-    // Setup parameters specific to this detector
-    void setupParameters(String... params);
-
-    // Encapsulate detection results
+    // Encapsulates detection results
     class DetectionResult {
         public BufferedImage modifiedImage;
         public List<TextRegion> regions;
@@ -38,4 +34,19 @@ public interface TextDetector {
             this.regions = regions;
         }
     }
+
+    // Process an image and return detection results
+    DetectionResult detect(BufferedImage image, Object metadata);
+
+    // Configure the detector with parameters
+    void setupParameters(String... params);
+
+    // Apply the specified action to detected text
+    enum Action {
+        OUTLINE,
+        MASK,
+        MOVE_TO_FOLDER
+    }
+    void applyAction(Action action, DetectionResult result, String outputPath);
 }
+
