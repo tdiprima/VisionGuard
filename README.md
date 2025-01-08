@@ -16,22 +16,41 @@ VisionGuard is a Java-based tool for detecting and protecting sensitive text in 
 - [Tesseract OCR](https://github.com/tesseract-ocr/tessdata)
 
 ### Setup and Run
-1. Build the project:
+
+1. Install Tesseract:
+
+   ```sh
+   # Install Tesseract
+   brew install tesseract
+   ```
+
+2. Build the project:
 
    ```sh
    mvn clean package
    ```
 
-2. Run the JAR:
+3. Run the JAR:
 
    ```sh
    java -jar target/VisionGuard-1.0-jar-with-dependencies.jar
+
+   # OR
+
+   # Locate the libtesseract.dylib
+   find /usr/local /opt/homebrew -name "libtesseract.dylib"
+
+   # Update the java.library.path
+   java -Djava.library.path=/usr/local/lib -jar target/VisionGuard-1.0-jar
    ```
 
 3. Ensure you configure Tesseract's data path and language:
 
    ```java
    detector.setupParameters("/path/to/tessdata", "eng");
+
+   # Example:
+   detector.setupParameters("/usr/share/tesseract-ocr/4.00/tessdata", "eng");
    ```
 
 ## Contributing
