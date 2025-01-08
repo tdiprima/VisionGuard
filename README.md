@@ -7,6 +7,7 @@ VisionGuard is a Java-based tool for detecting and protecting sensitive text in 
 - Detect text regions in images and extract corresponding text.
 - Mask sensitive information in images.
 - Modular architecture with SPI for adding custom detectors.
+- Cross-validation between Tesseract and llama3.2-vision model.
 
 ## Usage
 
@@ -33,7 +34,7 @@ VisionGuard is a Java-based tool for detecting and protecting sensitive text in 
 3. Run the program:
 
    ```
-   Usage: java VisionGuard <imagePath> <action> <outputPath>
+   Usage: Usage: java VisionGuard <imagePath> <action> <outputPath> <reportPath>
    Actions: OUTLINE, MASK, MOVE_TO_FOLDER
    ```
    
@@ -43,9 +44,6 @@ VisionGuard is a Java-based tool for detecting and protecting sensitive text in 
 
    ```java
    detector.setupParameters("/path/to/tessdata", "eng");
-
-   // Example:
-   detector.setupParameters("/usr/share/tesseract-ocr/4.00/tessdata", "eng");
    ```
 
 ## Contributing

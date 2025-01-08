@@ -1,5 +1,7 @@
 package com.tdiprima.visionguard;
 
+import static com.tdiprima.visionguard.OllamaHelpers.encodeImageToBase64;
+import static com.tdiprima.visionguard.OllamaHelpers.sendPostRequest;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -31,7 +33,7 @@ public class OllamaTextDetector implements TextDetector {
         try {
             // Convert image to a byte array
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", baos);
+            ImageIO.write(image, "png", baos); // TODO: Handle different image types
             baos.flush();
             byte[] imageBytes = baos.toByteArray();
 
@@ -74,6 +76,22 @@ public class OllamaTextDetector implements TextDetector {
             e.printStackTrace();
         }
         return new DetectionResult(image, regions);
+    }
+
+    public String detectWithDynamicPrompts(BufferedImage image, String systemPrompt, String prompt) {
+        // Adapt the method to include systemPrompt and prompt in the JSON payload dynamically
+        String payload = String.format(
+                "{"
+                + "\"model\": \"llama3.2-vision:latest\", "
+                + "\"system\": \"%s\", "
+                + "\"prompt\": \"%s\", "
+                + "\"image\": \"%s\""
+                + "}",
+                systemPrompt,
+                prompt,
+                encodeImageToBase64(image)
+        );
+        return sendPostRequest(ollamaServerUrl, payload);
     }
 
     private List<TextRegion> parseOllamaResponse(String responseJson) {
