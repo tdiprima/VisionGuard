@@ -113,6 +113,7 @@ public class TesseractTextDetector implements TextDetector {
         g2d.drawImage(image, 0, 0, null);
 
         g2d.setColor(new Color(0, 0, 0, 255)); // Black mask
+        // g2d.setColor(new Color(255, 0, 0, 128)); // Red semi-transparent
         for (TextRegion region : regions) {
             g2d.fillRect(region.x, region.y, region.width, region.height);
         }
