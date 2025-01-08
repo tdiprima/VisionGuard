@@ -6,6 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
 
+/**
+ * Test different prompts.
+ * Purposely named, because I don't want this to run with every compile.
+ * 
+ * @author tdiprima
+ */
 public class OllamaPromptTester {
 
     public static void main(String[] args) {

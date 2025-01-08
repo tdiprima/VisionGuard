@@ -6,8 +6,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -31,13 +29,13 @@ public class OllamaTextDetector implements TextDetector {
     public DetectionResult detect(BufferedImage image, Object metadata) {
         List<TextRegion> regions = new ArrayList<>();
         try {
-            // Convert image to a byte array
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(image, "png", baos); // TODO: Handle different image types
-            baos.flush();
-            byte[] imageBytes = baos.toByteArray();
+            // Encode the image to Base64 using the helper function
+            String base64Image = encodeImageToBase64(image);
+            if (base64Image == null) {
+                throw new IllegalArgumentException("Failed to encode image to Base64.");
+            }
 
-            // Create JSON payload
+            // Create the JSON payload
             String payload = String.format(
                     "{"
                     + "\"model\": \"llama3.2-vision:latest\", "
@@ -45,31 +43,14 @@ public class OllamaTextDetector implements TextDetector {
                     + "\"prompt\": \"Find all text in the provided image and return their bounding boxes in JSON format. Follow the structure strictly. Do not include any other content or explanation.\", "
                     + "\"image\": \"%s\""
                     + "}",
-                    java.util.Base64.getEncoder().encodeToString(imageBytes)
+                    base64Image
             );
 
-            // Send POST request
-            System.out.println("*** QUERYING LLAMA VISION MODEL ***");
-            URL url = new URL(ollamaServerUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.getOutputStream().write(payload.getBytes());
+            // Send the POST request using the helper function
+            String responseJson = sendPostRequest(ollamaServerUrl, payload);
+            System.out.println("responseJson: " + responseJson);
 
-            // Read response
-            InputStream responseStream = connection.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(responseStream));
-            StringBuilder responseBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                responseBuilder.append(line);
-            }
-            reader.close();
-
-            // Parse response JSON
-            String responseJson = responseBuilder.toString();
-            // System.out.println("responseJson: " + responseJson);
+            // Parse the response JSON
             regions = parseOllamaResponse(responseJson);
 
         } catch (Exception e) {

@@ -30,6 +30,8 @@ public class OllamaHelpers {
     public static String sendPostRequest(String urlString, String jsonPayload) {
         StringBuilder response = new StringBuilder();
         HttpURLConnection connection = null;
+        
+        System.out.println("*** QUERYING LLAMA VISION MODEL ***");
 
         try {
             URL url = new URL(urlString);
