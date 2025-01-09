@@ -1,7 +1,7 @@
 # Output
 output/
 output.png
-report.txt
+*.txt
 
 # Compiled class file
 *.class

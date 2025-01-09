@@ -13,23 +13,25 @@ public class ImageToBase64 {
 
     public static void main(String[] args) {
         // Path to the input image
-        String imagePath = "example.png";
+        String userHome = System.getProperty("user.home");
+        String imagePath = userHome + "/example.png";
+
         // Path to save the Base64 string
-        String outputPath = "/output/base64_image.txt";
+        String outputPath = "base64_image.txt";
 
         try {
             // Read the image
-            // File imageFile = new File(imagePath);
-            // BufferedImage image = ImageIO.read(imageFile);
+             File imageFile = new File(imagePath);
+             BufferedImage image = ImageIO.read(imageFile);
             
             // Load the image as an InputStream (image should be in the resources folder)
-            InputStream inputStream = ImageToBase64.class.getResourceAsStream(imagePath);
-            if (inputStream == null) {
-                throw new IOException("Image resource not found. Check the resource path.");
-            }
+//            InputStream inputStream = ImageToBase64.class.getResourceAsStream(imagePath);
+//            if (inputStream == null) {
+//                throw new IOException("Image resource not found. Check the resource path.");
+//            }
 
             // Read the image from InputStream
-            BufferedImage image = ImageIO.read(inputStream);
+//            BufferedImage image = ImageIO.read(inputStream);
             if (image == null) {
                 throw new IOException("Image could not be loaded. Check the file path or format.");
             }
