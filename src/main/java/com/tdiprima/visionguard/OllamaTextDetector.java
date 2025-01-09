@@ -39,8 +39,8 @@ public class OllamaTextDetector implements TextDetector {
             String payload = String.format(
                     "{"
                     + "\"model\": \"llama3.2-vision:latest\", "
-                    + "\"system\": \"You are a JSON output generator. Your sole task is to analyze the input image and extract text regions. Your response must strictly conform to the format {'regions': [{'x': <x-coordinate>, 'y': <y-coordinate>, 'width': <width>, 'height': <height>, 'text': '<detected-text>'}, ...]}. You will not provide explanations, preambles, or any other output. If the image cannot be processed, respond only with {'regions': []}.\", "
-                    + "\"prompt\": \"Find all text in the provided image and return their bounding boxes in JSON format. Follow the structure strictly. Do not include any other content or explanation.\", "
+                    + "\"system\": \"You are a JSON-only generator. Always return a JSON object with this exact format: {'regions': [{'x': <int>, 'y': <int>, 'width': <int>, 'height': <int>, 'text': '<string>'}, ...]}. If no text is detected, respond with {'regions': []}. However, if you did not receive the image, then say so.\", "
+                    + "\"prompt\": \"Analyze the provided image and strictly return the bounding boxes and text regions in JSON format. If you did not receive the image, then say so.\", "
                     + "\"image\": \"%s\""
                     + "}",
                     base64Image
