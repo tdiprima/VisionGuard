@@ -44,10 +44,17 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
    Example:
 
    ```sh
-   java VisionGuard sample.png MASK output.png report.txt
+   java VisionGuard /images/example.png MASK output.png report.txt
    ```
 
-4. Ensure you configure Tesseract's data path and language in the code:
+   Using maven:
+
+   ```sh
+   mvn clean package
+   java -jar target/VisionGuard-1.0-jar-with-dependencies.jar /images/example.png OUTLINE output.png report.txt
+   ```
+
+5. Ensure you configure Tesseract's data path and language in the code:
 
    ```java
    detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata", "eng");
