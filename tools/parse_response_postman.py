@@ -1,9 +1,10 @@
 import json
 
+
 def extract_responses_from_lines(file_path):
     responses = []
     done_found = False
-    
+
     with open(file_path, 'r') as file:
         for line in file:
             try:
@@ -17,6 +18,7 @@ def extract_responses_from_lines(file_path):
                 print(f"Invalid JSON object: {line.strip()} | Error: {e}")
 
     return responses, done_found
+
 
 # Parse the file and extract responses
 responses, done_found = extract_responses_from_lines('info.txt')

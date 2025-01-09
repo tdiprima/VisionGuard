@@ -1,5 +1,6 @@
 import json
 
+
 def extract_responses(file_path):
     responses = []
     done_found = False
@@ -8,7 +9,7 @@ def extract_responses(file_path):
 
     # Split based on }{ since objects are not properly concatenated
     fragments = raw_data.split('}{')
-    
+
     # Add braces to make each fragment valid JSON
     fragments[0] += '}'
     fragments[-1] = '{' + fragments[-1]
@@ -27,6 +28,7 @@ def extract_responses(file_path):
             print(f"Invalid JSON object: {fragment} | Error: {e}")
 
     return responses, done_found
+
 
 # Parse the file and extract responses
 responses, done_found = extract_responses('info.txt')
