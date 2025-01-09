@@ -1,4 +1,4 @@
-package com.tdiprima.tests;
+package com.tdiprima.visionguard.tools;
 
 import com.tdiprima.visionguard.OllamaTextDetector;
 import java.awt.image.BufferedImage;
@@ -8,7 +8,6 @@ import javax.imageio.ImageIO;
 
 /**
  * Test different prompts.
- * Purposely named, because I don't want this to run with every compile.
  * 
  * @author tdiprima
  */
