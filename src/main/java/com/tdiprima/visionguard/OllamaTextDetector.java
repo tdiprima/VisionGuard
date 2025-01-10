@@ -41,7 +41,7 @@ public class OllamaTextDetector implements TextDetector {
 
             // Create the JSON payload
             String jsonPayload = String.format(
-                """
+                    """
                 {
                     "model": "llama3.2-vision",
                     "prompt": "Extract all text from the attached image",
@@ -49,7 +49,7 @@ public class OllamaTextDetector implements TextDetector {
                     "images": ["%s"]
                 }
                 """,
-                base64Image
+                    base64Image
             );
 
             // Send the POST request
@@ -57,7 +57,7 @@ public class OllamaTextDetector implements TextDetector {
 
             // Parse and print the response field
             JsonObject responseObject = JsonParser.parseString(responseJson).getAsJsonObject();
-            
+
             if (responseObject.has("response")) {
                 response = responseObject.get("response").getAsString();
                 System.out.println("Response from Ollama: " + response);
@@ -134,6 +134,11 @@ public class OllamaTextDetector implements TextDetector {
 
             case MOVE_TO_FOLDER:
                 moveImageToFolder(result.modifiedImage, outputPath);
+                break;
+
+            case QUARANTINE:
+                String quarantinePath = outputPath + "/quarantine/";
+                moveImageToFolder(result.modifiedImage, quarantinePath);
                 break;
 
             default:

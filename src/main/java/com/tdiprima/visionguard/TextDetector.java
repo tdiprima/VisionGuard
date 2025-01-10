@@ -50,10 +50,11 @@ public interface TextDetector {
     void setupParameters(String... params);
 
     // Apply the specified action to detected text
-    enum Action {
+    public enum Action {
         OUTLINE,
         MASK,
-        MOVE_TO_FOLDER
+        MOVE_TO_FOLDER,
+        QUARANTINE
     }
 
     void applyAction(Action action, DetectionResult result, String outputPath);

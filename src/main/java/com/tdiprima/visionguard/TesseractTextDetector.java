@@ -74,6 +74,11 @@ public class TesseractTextDetector implements TextDetector {
                 moveImageToFolder(result.modifiedImage, outputPath);
                 break;
 
+            case QUARANTINE:
+                String quarantinePath = outputPath + "/quarantine/";
+                moveImageToFolder(result.modifiedImage, quarantinePath);
+                break;
+
             default:
                 throw new UnsupportedOperationException("Action not supported: " + action);
         }

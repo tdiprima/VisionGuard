@@ -41,10 +41,12 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
    java VisionGuard <imagePath> <action> <outputPath> <reportPath>
    ```
 
-   Example:
+   Examples:
 
    ```sh
    java VisionGuard /images/example.png MASK output.png report.txt
+   
+   java VisionGuard /path/to/image.png QUARANTINE /output/path /report/path
    ```
 
    Using maven:
@@ -63,7 +65,8 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
 ### Supported Actions
 - **OUTLINE**: Draw bounding boxes around detected text.
 - **MASK**: Mask detected text regions in the image.
-- **MOVE_TO_FOLDER**: Save processed images to a specified directory.
+- **MOVE\_TO\_FOLDER**: For general output organization, e.g., grouping all processed images into an output folder.
+- **QUARANTINE**: To specifically identify and separate suspect or problematic images, such as those containing sensitive data (PHI) or OCR anomalies.
 
 ### Input Requirements
 - Supported image formats: PNG, JPEG

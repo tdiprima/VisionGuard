@@ -12,7 +12,7 @@
             <properties>
                 <exec.vmArgs>-Djava.library.path=/usr/local/lib/libtesseract.dylib</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>/images/example.png OUTLINE output.png report.txt</exec.appArgs>
+                <exec.appArgs>/images/example.png QUARANTINE output/ report/</exec.appArgs>
                 <exec.mainClass>com.tdiprima.visionguard.VisionGuard</exec.mainClass>
                 <exec.executable>java</exec.executable>
             </properties>
@@ -29,7 +29,7 @@
             <properties>
                 <exec.vmArgs>-Djava.library.path=/usr/local/lib/libtesseract.dylib -agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>/images/example.png OUTLINE output.png report.txt</exec.appArgs>
+                <exec.appArgs>/images/example.png QUARANTINE output/ report/</exec.appArgs>
                 <exec.mainClass>com.tdiprima.visionguard.VisionGuard</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
@@ -49,7 +49,7 @@
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.mainClass>com.tdiprima.visionguard.VisionGuard</exec.mainClass>
                 <exec.executable>java</exec.executable>
-                <exec.appArgs>/images/example.png OUTLINE output.png report.txt</exec.appArgs>
+                <exec.appArgs>/images/example.png QUARANTINE output/ report/</exec.appArgs>
             </properties>
         </action>
     </actions>
