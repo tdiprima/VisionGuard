@@ -13,8 +13,7 @@ public class ImageToBase64 {
 
     public static void main(String[] args) {
         // Path to the input image
-        String userHome = System.getProperty("user.home");
-        String imagePath = userHome + "/example.png";
+        String imagePath = "src/main/resources/images/example.png";
 
         // Path to save the Base64 string
         String outputPath = "base64_image.txt";

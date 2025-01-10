@@ -72,10 +72,10 @@ public class VisionGuard {
         tesseractDetector.applyAction(action, tesseractResult, outputPath);
 
         // Validate results and generate a discrepancy report
-        DetectorValidator.validate(tesseractResult, ollamaResult, reportPath);
+//        DetectorValidator.validate(tesseractResult, ollamaResult, reportPath);
 
         System.out.println("Processing completed.");
         System.out.println("Output saved to: " + outputPath);
-        System.out.println("Discrepancy report saved to: " + reportPath);
+//        System.out.println("Discrepancy report saved to: " + reportPath);
     }
 }

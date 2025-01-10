@@ -52,12 +52,12 @@ public class OllamaPromptTester {
         ollamaDetector.setupParameters("http://localhost:11434/api/generate");
 
         // Perform detection with hard-coded prompts
-        try {
-            String responseJson = ollamaDetector.detectWithDynamicPrompts(image, systemPrompt, prompt);
-            System.out.println("Response JSON:\n" + responseJson);
-        } catch (Exception e) {
-            System.err.println("Error during text detection: " + e.getMessage());
-            e.printStackTrace();
-        }
+//        try {
+//            String responseJson = ollamaDetector.detectWithDynamicPrompts(image, systemPrompt, prompt);
+//            System.out.println("Response JSON:\n" + responseJson);
+//        } catch (Exception e) {
+//            System.err.println("Error during text detection: " + e.getMessage());
+//            e.printStackTrace();
+//        }
     }
 }

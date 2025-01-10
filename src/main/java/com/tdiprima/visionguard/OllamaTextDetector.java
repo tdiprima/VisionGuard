@@ -1,16 +1,20 @@
 package com.tdiprima.visionguard;
 
-import static com.tdiprima.visionguard.OllamaHelpers.encodeImageToBase64;
-import static com.tdiprima.visionguard.OllamaHelpers.sendPostRequest;
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Base64;
 import java.util.logging.Level;
-import javax.imageio.ImageIO;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.awt.Graphics2D;
+import java.util.List;
 
 public class OllamaTextDetector implements TextDetector {
 
@@ -27,105 +31,92 @@ public class OllamaTextDetector implements TextDetector {
 
     @Override
     public DetectionResult detect(BufferedImage image, Object metadata) {
-        List<TextRegion> regions = new ArrayList<>();
         try {
-            // Encode the image to Base64 using the helper function
+            // Encode the image to Base64
             String base64Image = encodeImageToBase64(image);
             if (base64Image == null) {
                 throw new IllegalArgumentException("Failed to encode image to Base64.");
             }
 
             // Create the JSON payload
-            String payload = String.format(
-                    "{"
-                    + "\"model\": \"llama3.2-vision:latest\", "
-                    + "\"system\": \"You are a JSON-only generator. Always return a JSON object with this exact format: {'regions': [{'x': <int>, 'y': <int>, 'width': <int>, 'height': <int>, 'text': '<string>'}, ...]}. If no text is detected, respond with {'regions': []}. However, if you did not receive the image, then say so.\", "
-                    + "\"prompt\": \"Analyze the provided image and strictly return the bounding boxes and text regions in JSON format. If you did not receive the image, then say so.\", "
-                    + "\"image\": \"%s\""
-                    + "}",
-                    base64Image
+            String jsonPayload = String.format(
+                """
+                {
+                    "model": "llama3.2-vision",
+                    "prompt": "Extract all text from the attached image",
+                    "stream": false,
+                    "images": ["%s"]
+                }
+                """,
+                base64Image
             );
 
-            // Send the POST request using the helper function
-            String responseJson = sendPostRequest(ollamaServerUrl, payload);
-            System.out.println("responseJson: " + responseJson);
+            // Send the POST request
+            String responseJson = sendPostRequest(ollamaServerUrl, jsonPayload);
 
-            // Parse the response JSON
-            regions = parseOllamaResponse(responseJson);
+            // Parse and print the response field
+            JsonObject responseObject = JsonParser.parseString(responseJson).getAsJsonObject();
+            if (responseObject.has("response")) {
+                String response = responseObject.get("response").getAsString();
+                System.out.println("Response from Ollama: " + response);
+            } else {
+                System.out.println("Response field not found in the response JSON.");
+            }
 
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error during detection: {0}", e.getMessage());
             e.printStackTrace();
         }
-        return new DetectionResult(image, regions);
+        return new DetectionResult(image, null); // Returning image with null regions since we're not parsing the response
     }
 
-    public String detectWithDynamicPrompts(BufferedImage image, String systemPrompt, String prompt) {
-        // Adapt the method to include systemPrompt and prompt in the JSON payload dynamically
-        String payload = String.format(
-                "{"
-                + "\"model\": \"llama3.2-vision:latest\", "
-                + "\"system\": \"%s\", "
-                + "\"prompt\": \"%s\", "
-                + "\"image\": \"%s\""
-                + "}",
-                systemPrompt,
-                prompt,
-                encodeImageToBase64(image)
-        );
-        return sendPostRequest(ollamaServerUrl, payload);
+    private String encodeImageToBase64(BufferedImage image) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ImageIO.write(image, "png", baos);
+            return Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to encode image to Base64: {0}", e.getMessage());
+            return null;
+        }
     }
 
-    private List<TextRegion> parseOllamaResponse(String responseJson) {
-        List<TextRegion> regions = new ArrayList<>();
-        StringBuilder reconstructedResponse = new StringBuilder();
-
+    private String sendPostRequest(String urlString, String jsonPayload) {
+        StringBuilder response = new StringBuilder();
+        HttpURLConnection connection = null;
         try {
-            // Split the concatenated JSON objects
-            String[] jsonObjects = responseJson.split("\\}\\{");
+            URL url = new URL(urlString);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
 
-            for (int i = 0; i < jsonObjects.length; i++) {
-                // Fix JSON fragments (add missing braces after splitting)
-                if (i > 0) {
-                    jsonObjects[i] = "{" + jsonObjects[i];
-                }
-                if (i < jsonObjects.length - 1) {
-                    jsonObjects[i] = jsonObjects[i] + "}";
-                }
-
-                // Parse each object to extract the "response" field
-                com.google.gson.JsonObject jsonObject = com.google.gson.JsonParser.parseString(jsonObjects[i]).getAsJsonObject();
-                if (jsonObject.has("response")) {
-                    String responsePart = jsonObject.get("response").getAsString();
-                    reconstructedResponse.append(responsePart.replace("\n", "").trim());
-                }
+            // Send the JSON payload
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(jsonPayload.getBytes());
+                os.flush();
             }
 
-            // Parse the reconstructed JSON
-            String finalResponseJson = reconstructedResponse.toString();
-            com.google.gson.JsonObject finalResponseObject = com.google.gson.JsonParser.parseString(finalResponseJson).getAsJsonObject();
-            if (finalResponseObject.has("regions")) {
-                com.google.gson.JsonArray regionsArray = finalResponseObject.getAsJsonArray("regions");
-
-                for (com.google.gson.JsonElement element : regionsArray) {
-                    com.google.gson.JsonObject regionObject = element.getAsJsonObject();
-                    int x = regionObject.get("x").getAsInt();
-                    int y = regionObject.get("y").getAsInt();
-                    int width = regionObject.get("width").getAsInt();
-                    int height = regionObject.get("height").getAsInt();
-                    String text = regionObject.get("text").getAsString();
-
-                    regions.add(new TextRegion(x, y, width, height, text));
+            // Read the response
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
                 }
             }
         } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error sending POST request: {0}", e.getMessage());
             e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
-
-        return regions;
+        return response.toString();
     }
 
     @Override
     public void applyAction(Action action, DetectionResult result, String outputPath) {
+        // Reuse the existing logic for applying actions
         switch (action) {
             case OUTLINE:
                 BufferedImage outlinedImage = outlineTextRegions(result.modifiedImage, result.regions);
@@ -146,64 +137,48 @@ public class OllamaTextDetector implements TextDetector {
         }
     }
 
-    // Utility to draw bounding boxes on the image
     private BufferedImage outlineTextRegions(BufferedImage image, List<TextRegion> regions) {
-        BufferedImage outlinedImage = new BufferedImage(
-                image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB
-        );
+        BufferedImage outlinedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = outlinedImage.createGraphics();
         g2d.drawImage(image, 0, 0, null);
-
-        g2d.setColor(new Color(255, 0, 0, 128)); // Red semi-transparent
+        g2d.setColor(new java.awt.Color(255, 0, 0, 128));
         for (TextRegion region : regions) {
             g2d.drawRect(region.x, region.y, region.width, region.height);
         }
-
         g2d.dispose();
         return outlinedImage;
     }
 
-    // Utility to mask text regions on the image
     private BufferedImage maskTextRegions(BufferedImage image, List<TextRegion> regions) {
-        BufferedImage maskedImage = new BufferedImage(
-                image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB
-        );
+        BufferedImage maskedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = maskedImage.createGraphics();
         g2d.drawImage(image, 0, 0, null);
-
-        g2d.setColor(new Color(0, 0, 0, 255)); // Black mask
+        g2d.setColor(new java.awt.Color(0, 0, 0, 255));
         for (TextRegion region : regions) {
             g2d.fillRect(region.x, region.y, region.width, region.height);
         }
-
         g2d.dispose();
         return maskedImage;
     }
 
-    // Utility to move an image to a specific folder
+    private void saveImage(BufferedImage image, String outputPath) {
+        try {
+            java.io.File outputFile = new java.io.File(outputPath);
+            ImageIO.write(image, "png", outputFile);
+            logger.log(Level.INFO, "Image saved to: {0}", outputPath);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to save image: {0}", e.getMessage());
+        }
+    }
+
     private void moveImageToFolder(BufferedImage image, String outputFolderPath) {
-        File folder = new File(outputFolderPath);
+        java.io.File folder = new java.io.File(outputFolderPath);
         if (!folder.exists() && !folder.mkdirs()) {
-            System.err.println("Failed to create output folder: " + outputFolderPath);
+            logger.log(Level.SEVERE, "Failed to create output folder: {0}", outputFolderPath);
             return;
         }
 
         String fileName = "ollama_detected_" + System.currentTimeMillis() + ".png";
-        File outputFile = new File(folder, fileName);
-
-        saveImage(image, outputFile.getAbsolutePath());
-        System.out.println("Image moved to folder: " + outputFile.getAbsolutePath());
+        saveImage(image, new java.io.File(folder, fileName).getAbsolutePath());
     }
-
-    // Utility to save an image to disk
-    private void saveImage(BufferedImage image, String outputPath) {
-        try {
-            File outputFile = new File(outputPath);
-            ImageIO.write(image, "png", outputFile);
-            logger.log(Level.INFO, "Image saved to: {0}", outputPath);
-        } catch (IOException e) {
-            System.err.println("Failed to save image: " + e.getMessage());
-        }
-    }
-
 }

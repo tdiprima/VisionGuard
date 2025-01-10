@@ -28,3 +28,5 @@ output.png
 hs_err_pid*
 replay_pid*
 /target/
+
+src/main/java/com/tdiprima/tcia/ImageLLM.java
