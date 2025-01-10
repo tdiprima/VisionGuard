@@ -14,6 +14,8 @@ import java.io.BufferedReader;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.awt.Graphics2D;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class OllamaTextDetector implements TextDetector {
@@ -119,32 +121,32 @@ public class OllamaTextDetector implements TextDetector {
     }
 
     @Override
-    public void applyAction(Action action, DetectionResult result, String outputPath) {
-        // Reuse the existing logic for applying actions
-        switch (action) {
-            case OUTLINE:
-                BufferedImage outlinedImage = outlineTextRegions(result.modifiedImage, result.regions);
-                saveImage(outlinedImage, outputPath);
-                break;
+public void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName) {
+    switch (action) {
+        case OUTLINE:
+            BufferedImage outlinedImage = outlineTextRegions(result.modifiedImage, result.regions);
+            saveImage(outlinedImage, outputPath, originalFileName);
+            break;
 
-            case MASK:
-                BufferedImage maskedImage = maskTextRegions(result.modifiedImage, result.regions);
-                saveImage(maskedImage, outputPath);
-                break;
+        case MASK:
+            BufferedImage maskedImage = maskTextRegions(result.modifiedImage, result.regions);
+            saveImage(maskedImage, outputPath, originalFileName);
+            break;
 
-            case MOVE_TO_FOLDER:
-                moveImageToFolder(result.modifiedImage, outputPath);
-                break;
+        case MOVE_TO_FOLDER:
+            moveImageToFolder(result.modifiedImage, outputPath, originalFileName);
+            break;
 
-            case QUARANTINE:
-                String quarantinePath = outputPath + "/quarantine/";
-                moveImageToFolder(result.modifiedImage, quarantinePath);
-                break;
+        case QUARANTINE:
+            String quarantinePath = outputPath + "/quarantine/";
+            moveImageToFolder(result.modifiedImage, quarantinePath, originalFileName);
+            break;
 
-            default:
-                throw new UnsupportedOperationException("Action not supported: " + action);
-        }
+        default:
+            throw new UnsupportedOperationException("Action not supported: " + action);
     }
+}
+
 
     private BufferedImage outlineTextRegions(BufferedImage image, List<TextRegion> regions) {
         BufferedImage outlinedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -170,24 +172,29 @@ public class OllamaTextDetector implements TextDetector {
         return maskedImage;
     }
 
-    private void saveImage(BufferedImage image, String outputPath) {
+    private void saveImage(BufferedImage image, String outputPath, String originalFileName) {
         try {
-            java.io.File outputFile = new java.io.File(outputPath);
+            String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
+            String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
+            File outputFile = new File(outputPath, fileName);
             ImageIO.write(image, "png", outputFile);
-            logger.log(Level.INFO, "Image saved to: {0}", outputPath);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to save image: {0}", e.getMessage());
+            logger.log(Level.INFO, "Image saved to: {0}", outputFile.getAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("Failed to save image: " + e.getMessage());
         }
     }
 
-    private void moveImageToFolder(BufferedImage image, String outputFolderPath) {
-        java.io.File folder = new java.io.File(outputFolderPath);
+    private void moveImageToFolder(BufferedImage image, String outputFolderPath, String originalFileName) {
+        File folder = new File(outputFolderPath);
         if (!folder.exists() && !folder.mkdirs()) {
-            logger.log(Level.SEVERE, "Failed to create output folder: {0}", outputFolderPath);
+            System.err.println("Failed to create output folder: " + outputFolderPath);
             return;
         }
 
-        String fileName = "ollama_detected_" + System.currentTimeMillis() + ".png";
-        saveImage(image, new java.io.File(folder, fileName).getAbsolutePath());
+        String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
+        String fileName = baseName + "_" + System.currentTimeMillis() + "_ollama.png";
+        File outputFile = new File(folder, fileName);
+
+        saveImage(image, outputFile.getAbsolutePath(), originalFileName);
     }
 }

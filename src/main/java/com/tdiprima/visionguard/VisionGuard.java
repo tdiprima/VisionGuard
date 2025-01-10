@@ -2,6 +2,7 @@ package com.tdiprima.visionguard;
 
 import com.tdiprima.visionguard.TextDetector.DetectionResult;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.ImageIO;
@@ -17,6 +18,7 @@ public class VisionGuard {
         }
 
         String imagePath = args[0];
+        String originalFileName = new File(imagePath).getName(); // Extract the original file name
         String actionStr = args[1].toUpperCase();
         String outputPath = args[2];
         String reportPath = args[3];
@@ -66,16 +68,20 @@ public class VisionGuard {
 
         // Perform detection
         DetectionResult tesseractResult = tesseractDetector.detect(image, null);
-        DetectionResult ollamaResult = ollamaDetector.detect(image, null);
+//        DetectionResult ollamaResult = ollamaDetector.detect(image, null);
 
         // Apply the selected action for Tesseract results
-        tesseractDetector.applyAction(action, tesseractResult, outputPath);
+        tesseractDetector.applyAction(action, tesseractResult, outputPath, originalFileName);
 
         // Validate results and generate a discrepancy report
-        DetectorValidator.validate(tesseractResult, ollamaResult, reportPath);
-
+//        DetectorValidator.validate(tesseractResult, ollamaResult, reportPath);
         System.out.println("Processing completed.");
         System.out.println("Output saved to: " + outputPath);
         System.out.println("Discrepancy report saved to: " + reportPath);
+
+        System.out.println("Action: " + action);
+        System.out.println("Output Path: " + outputPath);
+        System.out.println("Original File Name: " + originalFileName);
+
     }
 }

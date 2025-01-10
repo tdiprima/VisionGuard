@@ -58,25 +58,26 @@ public class TesseractTextDetector implements TextDetector {
     }
 
     @Override
-    public void applyAction(Action action, DetectionResult result, String outputPath) {
+    public void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName) {
         switch (action) {
             case OUTLINE:
                 BufferedImage outlinedImage = outlineTextRegions(result.modifiedImage, result.regions);
-                saveImage(outlinedImage, outputPath);
+                saveImage(outlinedImage, outputPath, originalFileName);
                 break;
 
             case MASK:
                 BufferedImage maskedImage = maskTextRegions(result.modifiedImage, result.regions);
-                saveImage(maskedImage, outputPath);
+                saveImage(maskedImage, outputPath, originalFileName);
                 break;
 
             case MOVE_TO_FOLDER:
-                moveImageToFolder(result.modifiedImage, outputPath);
+                moveImageToFolder(result.modifiedImage, outputPath, originalFileName);
                 break;
 
             case QUARANTINE:
-                String quarantinePath = outputPath + "/quarantine/";
-                moveImageToFolder(result.modifiedImage, quarantinePath);
+                String quarantinePath = outputPath + File.separator + "quarantine";
+                System.out.println("Quarantine action triggered. Path: " + quarantinePath);
+                moveImageToFolder(result.modifiedImage, quarantinePath, originalFileName);
                 break;
 
             default:
@@ -102,13 +103,19 @@ public class TesseractTextDetector implements TextDetector {
     }
 
     // Utility to save an image to disk
-    private void saveImage(BufferedImage image, String outputPath) {
+    private void saveImage(BufferedImage image, String outputPath, String originalFileName) {
+        String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
+        String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
+        File outputFile = new File(outputPath, fileName);
+
+        System.out.println("Attempting to save image: " + outputFile.getAbsolutePath());
+
         try {
-            File outputFile = new File(outputPath);
             ImageIO.write(image, "png", outputFile);
-            logger.log(Level.INFO, "Image saved to: {0}", outputPath);
+            System.out.println("Image saved successfully to: " + outputFile.getAbsolutePath());
         } catch (IOException e) {
             System.err.println("Failed to save image: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -131,18 +138,26 @@ public class TesseractTextDetector implements TextDetector {
     }
 
     // Utility to move an image to a specific folder
-    private void moveImageToFolder(BufferedImage image, String outputFolderPath) {
+    private void moveImageToFolder(BufferedImage image, String outputFolderPath, String originalFileName) {
         File folder = new File(outputFolderPath);
         if (!folder.exists() && !folder.mkdirs()) {
             System.err.println("Failed to create output folder: " + outputFolderPath);
             return;
         }
 
-        String fileName = "detected_" + System.currentTimeMillis() + ".png";
+        String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
+        String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
         File outputFile = new File(folder, fileName);
 
-        saveImage(image, outputFile.getAbsolutePath());
-        System.out.println("Image moved to folder: " + outputFile.getAbsolutePath());
+        System.out.println("Saving image to quarantine folder: " + outputFile.getAbsolutePath());
+
+        try {
+            ImageIO.write(image, "png", outputFile);
+            System.out.println("Image saved to quarantine successfully.");
+        } catch (IOException e) {
+            System.err.println("Failed to save image to quarantine: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 }

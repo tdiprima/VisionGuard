@@ -57,5 +57,5 @@ public interface TextDetector {
         QUARANTINE
     }
 
-    void applyAction(Action action, DetectionResult result, String outputPath);
+    void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName);
 }
