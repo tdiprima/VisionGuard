@@ -64,6 +64,7 @@ public class VisionGuard {
 
         // Setup detectors
         tesseractDetector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng");
+        tesseractDetector.setBoundingBoxConstraints(15, 15, 400, 400);
         ollamaDetector.setupParameters("http://localhost:11434/api/generate");
 
         // Perform detection

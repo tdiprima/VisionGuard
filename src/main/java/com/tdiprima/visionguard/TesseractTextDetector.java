@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import java.util.logging.Logger;
 
@@ -20,6 +19,18 @@ public class TesseractTextDetector implements TextDetector {
 
     private Tesseract tesseract;
     private static final Logger logger = Logger.getLogger(TesseractTextDetector.class.getName());
+    private int minWidth = DEFAULT_MIN_WIDTH;
+    private int minHeight = DEFAULT_MIN_HEIGHT;
+    private int maxWidth = DEFAULT_MAX_WIDTH;
+    private int maxHeight = DEFAULT_MAX_HEIGHT;
+
+    @Override
+    public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
+        this.minWidth = minWidth;
+        this.minHeight = minHeight;
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+    }
 
     @Override
     public void setupParameters(String... params) {
@@ -46,14 +57,15 @@ public class TesseractTextDetector implements TextDetector {
                 int width = word.getBoundingBox().width;
                 int height = word.getBoundingBox().height;
 
-                // Add text region to the list
-                regions.add(new TextRegion(x, y, width, height, word.getText()));
+                // Apply size constraints
+                if (width >= minWidth && height >= minHeight && width <= maxWidth && height <= maxHeight) {
+                    regions.add(new TextRegion(x, y, width, height, word.getText()));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // Return the original image along with the detected regions
         return new DetectionResult(image, regions);
     }
 

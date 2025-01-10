@@ -197,4 +197,9 @@ public void applyAction(Action action, DetectionResult result, String outputPath
 
         saveImage(image, outputFile.getAbsolutePath(), originalFileName);
     }
+
+    @Override
+    public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
