@@ -81,6 +81,7 @@ public class OllamaTextDetector implements TextDetector {
     }
 
     private String sendPostRequest(String urlString, String jsonPayload) {
+        System.out.println("*** QUERYING LLAMA VISION MODEL ***");
         StringBuilder response = new StringBuilder();
         HttpURLConnection connection = null;
         try {
