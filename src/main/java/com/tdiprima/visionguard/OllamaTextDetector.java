@@ -31,6 +31,7 @@ public class OllamaTextDetector implements TextDetector {
 
     @Override
     public DetectionResult detect(BufferedImage image, Object metadata) {
+        String response = "";
         try {
             // Encode the image to Base64
             String base64Image = encodeImageToBase64(image);
@@ -56,8 +57,9 @@ public class OllamaTextDetector implements TextDetector {
 
             // Parse and print the response field
             JsonObject responseObject = JsonParser.parseString(responseJson).getAsJsonObject();
+            
             if (responseObject.has("response")) {
-                String response = responseObject.get("response").getAsString();
+                response = responseObject.get("response").getAsString();
                 System.out.println("Response from Ollama: " + response);
             } else {
                 System.out.println("Response field not found in the response JSON.");
@@ -67,7 +69,8 @@ public class OllamaTextDetector implements TextDetector {
             logger.log(Level.SEVERE, "Error during detection: {0}", e.getMessage());
             e.printStackTrace();
         }
-        return new DetectionResult(image, null); // Returning image with null regions since we're not parsing the response
+        return new DetectionResult(image, response);
+
     }
 
     private String encodeImageToBase64(BufferedImage image) {

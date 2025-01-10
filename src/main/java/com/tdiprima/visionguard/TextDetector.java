@@ -5,13 +5,14 @@ import java.util.List;
 
 /**
  * This is the "blueprint" for all detector implementations.
- * 
+ *
  * @author tdiprima
  */
 public interface TextDetector {
 
     // Represents a detected region of text
     class TextRegion {
+
         public int x, y, width, height;
         public String text;
 
@@ -25,13 +26,20 @@ public interface TextDetector {
     }
 
     // Encapsulates detection results
-    class DetectionResult {
+    public class DetectionResult {
+
         public BufferedImage modifiedImage;
         public List<TextRegion> regions;
+        public String rawResponse; // New field
 
         public DetectionResult(BufferedImage modifiedImage, List<TextRegion> regions) {
             this.modifiedImage = modifiedImage;
             this.regions = regions;
+        }
+
+        public DetectionResult(BufferedImage modifiedImage, String rawResponse) {
+            this.modifiedImage = modifiedImage;
+            this.rawResponse = rawResponse;
         }
     }
 
@@ -47,6 +55,6 @@ public interface TextDetector {
         MASK,
         MOVE_TO_FOLDER
     }
+
     void applyAction(Action action, DetectionResult result, String outputPath);
 }
-
