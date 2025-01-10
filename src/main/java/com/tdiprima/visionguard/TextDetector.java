@@ -16,6 +16,7 @@ public interface TextDetector {
     int DEFAULT_MAX_WIDTH = 500;
     int DEFAULT_MAX_HEIGHT = 500;
     String DEFAULT_QUARANTINE_FOLDER = "quarantine";
+    String DEFAULT_MOVE_FOLDER = "moved";
 
     // Configurable bounding box constraints
     void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight);

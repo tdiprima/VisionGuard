@@ -38,17 +38,15 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
 3. Run the program:
 
    ```sh
-   java VisionGuard <imagePath> <action> <outputPath> <reportPath> <options>
-   ```
-
-   Examples:
-
-   ```sh
-   java VisionGuard /images/example.png MASK output.png report.txt
-   
-   java VisionGuard /path/to/image.png OUTLINE /output/path /report/path --minWidth=15 --minHeight=15 --maxWidth=400 --maxHeight=400
-   
-   java VisionGuard /path/to/image.png OUTLINE /output/path /report/path --minWidth=20 --minHeight=20 --maxWidth=300 --maxHeight=300 --quarantinePath=/custom/quarantine --moveToFolderPath=/custom/move
+   Usage: java VisionGuard <imagePath> <action> <outputPath> <reportPath>
+   Actions: OUTLINE, MASK, MOVE_TO_FOLDER, QUARANTINE
+   Optional parameters:
+     --minWidth=X         Minimum width of bounding boxes
+     --minHeight=Y        Minimum height of bounding boxes
+     --maxWidth=A         Maximum width of bounding boxes
+     --maxHeight=B        Maximum height of bounding boxes
+     --quarantinePath=path   Specify quarantine folder (action=QUARANTINE)
+     --moveToFolderPath=path Specify move-to-folder path (action=MOVE_TO_FOLDER)
    ```
 
    Using maven:

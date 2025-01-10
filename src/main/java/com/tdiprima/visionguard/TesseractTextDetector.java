@@ -24,6 +24,7 @@ public class TesseractTextDetector implements TextDetector {
     private int maxWidth = DEFAULT_MAX_WIDTH;
     private int maxHeight = DEFAULT_MAX_HEIGHT;
     private String quarantineFolderPath = DEFAULT_QUARANTINE_FOLDER;
+    private String moveToFolderPath = DEFAULT_MOVE_FOLDER;
 
     @Override
     public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
@@ -39,7 +40,17 @@ public class TesseractTextDetector implements TextDetector {
         this.minHeight = config.minHeight;
         this.maxWidth = config.maxWidth;
         this.maxHeight = config.maxHeight;
-        this.quarantineFolderPath = config.quarantinePath;
+        this.quarantineFolderPath = config.quarantinePath != null ? config.quarantinePath : DEFAULT_QUARANTINE_FOLDER;
+        this.moveToFolderPath = config.moveToFolderPath != null ? config.moveToFolderPath : "output";
+
+        // Log default path usage
+        if (config.quarantinePath == null) {
+            System.out.println("Using default quarantine path: " + DEFAULT_QUARANTINE_FOLDER);
+        }
+
+        if (config.moveToFolderPath == null) {
+            System.out.println("Using default move-to-folder path: output");
+        }
     }
 
     @Override
@@ -67,6 +78,8 @@ public class TesseractTextDetector implements TextDetector {
                 int width = word.getBoundingBox().width;
                 int height = word.getBoundingBox().height;
 
+                System.out.printf("Detected region: [x=%d, y=%d, width=%d, height=%d, text='%s']%n", x, y, width, height, word.getText().trim());
+
                 // Apply size constraints
                 if (width >= minWidth && height >= minHeight && width <= maxWidth && height <= maxHeight) {
                     regions.add(new TextRegion(x, y, width, height, word.getText()));
@@ -93,13 +106,11 @@ public class TesseractTextDetector implements TextDetector {
                 break;
 
             case MOVE_TO_FOLDER:
-                moveImageToFolder(result.modifiedImage, outputPath, originalFileName);
+                moveImageToFolder(result.modifiedImage, moveToFolderPath, originalFileName); // Use moveToFolderPath from config
                 break;
 
             case QUARANTINE:
-                String quarantinePath = outputPath + File.separator + "quarantine";
-                System.out.println("Quarantine action triggered. Path: " + quarantinePath);
-                moveImageToFolder(result.modifiedImage, quarantinePath, originalFileName);
+                moveImageToFolder(result.modifiedImage, quarantineFolderPath, originalFileName); // Use quarantineFolderPath from config
                 break;
 
             default:
@@ -116,7 +127,15 @@ public class TesseractTextDetector implements TextDetector {
         g2d.drawImage(image, 0, 0, null);
 
         g2d.setColor(new Color(255, 0, 0, 128)); // Red semi-transparent
+
+        if (regions == null || regions.isEmpty()) {
+            System.out.println("No regions to outline.");
+            return image; // Return original image if no regions found
+        }
+
         for (TextRegion region : regions) {
+            System.out.printf("Drawing bounding box: x=%d, y=%d, width=%d, height=%d%n",
+                    region.x, region.y, region.width, region.height);
             g2d.drawRect(region.x, region.y, region.width, region.height);
         }
 

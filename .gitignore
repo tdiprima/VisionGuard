@@ -2,6 +2,7 @@
 output/
 output.png
 *.txt
+report
 
 # Compiled class file
 *.class
