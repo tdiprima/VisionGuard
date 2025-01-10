@@ -38,7 +38,7 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
 3. Run the program:
 
    ```sh
-   java VisionGuard <imagePath> <action> <outputPath> <reportPath>
+   java VisionGuard <imagePath> <action> <outputPath> <reportPath> <options>
    ```
 
    Examples:
@@ -46,7 +46,9 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
    ```sh
    java VisionGuard /images/example.png MASK output.png report.txt
    
-   java VisionGuard /path/to/image.png QUARANTINE /output/path /report/path
+   java VisionGuard /path/to/image.png OUTLINE /output/path /report/path --minWidth=15 --minHeight=15 --maxWidth=400 --maxHeight=400
+   
+   java VisionGuard /path/to/image.png OUTLINE /output/path /report/path --minWidth=20 --minHeight=20 --maxWidth=300 --maxHeight=300 --quarantinePath=/custom/quarantine --moveToFolderPath=/custom/move
    ```
 
    Using maven:

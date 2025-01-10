@@ -22,6 +22,11 @@ public class OllamaTextDetector implements TextDetector {
 
     private String ollamaServerUrl;
     private static final Logger logger = Logger.getLogger(OllamaTextDetector.class.getName());
+    private int minWidth = DEFAULT_MIN_WIDTH;
+    private int minHeight = DEFAULT_MIN_HEIGHT;
+    private int maxWidth = DEFAULT_MAX_WIDTH;
+    private int maxHeight = DEFAULT_MAX_HEIGHT;
+    private String quarantineFolderPath = DEFAULT_QUARANTINE_FOLDER;
 
     @Override
     public void setupParameters(String... params) {
@@ -29,6 +34,15 @@ public class OllamaTextDetector implements TextDetector {
             throw new IllegalArgumentException("Ollama server URL is required.");
         }
         this.ollamaServerUrl = params[0];
+    }
+
+    @Override
+    public void initialize(DetectorConfig config) {
+        this.minWidth = config.minWidth;
+        this.minHeight = config.minHeight;
+        this.maxWidth = config.maxWidth;
+        this.maxHeight = config.maxHeight;
+        this.quarantineFolderPath = config.quarantinePath;
     }
 
     @Override
@@ -121,32 +135,31 @@ public class OllamaTextDetector implements TextDetector {
     }
 
     @Override
-public void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName) {
-    switch (action) {
-        case OUTLINE:
-            BufferedImage outlinedImage = outlineTextRegions(result.modifiedImage, result.regions);
-            saveImage(outlinedImage, outputPath, originalFileName);
-            break;
+    public void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName) {
+        switch (action) {
+            case OUTLINE:
+                BufferedImage outlinedImage = outlineTextRegions(result.modifiedImage, result.regions);
+                saveImage(outlinedImage, outputPath, originalFileName);
+                break;
 
-        case MASK:
-            BufferedImage maskedImage = maskTextRegions(result.modifiedImage, result.regions);
-            saveImage(maskedImage, outputPath, originalFileName);
-            break;
+            case MASK:
+                BufferedImage maskedImage = maskTextRegions(result.modifiedImage, result.regions);
+                saveImage(maskedImage, outputPath, originalFileName);
+                break;
 
-        case MOVE_TO_FOLDER:
-            moveImageToFolder(result.modifiedImage, outputPath, originalFileName);
-            break;
+            case MOVE_TO_FOLDER:
+                moveImageToFolder(result.modifiedImage, outputPath, originalFileName);
+                break;
 
-        case QUARANTINE:
-            String quarantinePath = outputPath + "/quarantine/";
-            moveImageToFolder(result.modifiedImage, quarantinePath, originalFileName);
-            break;
+            case QUARANTINE:
+                String quarantinePath = outputPath + "/quarantine/";
+                moveImageToFolder(result.modifiedImage, quarantinePath, originalFileName);
+                break;
 
-        default:
-            throw new UnsupportedOperationException("Action not supported: " + action);
+            default:
+                throw new UnsupportedOperationException("Action not supported: " + action);
+        }
     }
-}
-
 
     private BufferedImage outlineTextRegions(BufferedImage image, List<TextRegion> regions) {
         BufferedImage outlinedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);

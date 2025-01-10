@@ -9,15 +9,19 @@ import java.util.List;
  * @author tdiprima
  */
 public interface TextDetector {
-    
+
     // Default bounding box constraints
     int DEFAULT_MIN_WIDTH = 10;
     int DEFAULT_MIN_HEIGHT = 10;
     int DEFAULT_MAX_WIDTH = 500;
     int DEFAULT_MAX_HEIGHT = 500;
+    String DEFAULT_QUARANTINE_FOLDER = "quarantine";
 
     // Configurable bounding box constraints
     void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight);
+
+    // Initialize detectors with a configuration
+    void initialize(DetectorConfig config);
 
     // Represents a detected region of text
     class TextRegion {

@@ -13,7 +13,7 @@ public class VisionGuard {
     public static void main(String[] args) {
         if (args.length < 4) {
             System.out.println("Usage: java VisionGuard <imagePath> <action> <outputPath> <reportPath>");
-            System.out.println("Actions: OUTLINE, MASK, MOVE_TO_FOLDER");
+            System.out.println("Actions: OUTLINE, MASK, MOVE_TO_FOLDER, QUARANTINE");
             return;
         }
 
@@ -31,11 +31,15 @@ public class VisionGuard {
             return;
         }
 
+        // Load configuration from CLI arguments
+        DetectorConfig config = DetectorConfig.fromArgs(args);
+
         // Load the image
         BufferedImage image;
         try {
             InputStream input = VisionGuard.class.getResourceAsStream(imagePath);
             image = ImageIO.read(input);
+            // image = ImageIO.read(new File(imagePath));
             if (image == null) {
                 throw new IOException("Failed to load image");
             }
@@ -67,12 +71,18 @@ public class VisionGuard {
         tesseractDetector.setBoundingBoxConstraints(15, 15, 400, 400);
         ollamaDetector.setupParameters("http://localhost:11434/api/generate");
 
+        // Initialize the detector with the configuration
+        tesseractDetector.initialize(config);
+
+
         // Perform detection
         DetectionResult tesseractResult = tesseractDetector.detect(image, null);
+
 //        DetectionResult ollamaResult = ollamaDetector.detect(image, null);
 
         // Apply the selected action for Tesseract results
         tesseractDetector.applyAction(action, tesseractResult, outputPath, originalFileName);
+        // tesseractDetector.applyAction(action, tesseractResult, outputPath, new File(imagePath).getName());
 
         // Validate results and generate a discrepancy report
 //        DetectorValidator.validate(tesseractResult, ollamaResult, reportPath);
@@ -80,9 +90,9 @@ public class VisionGuard {
         System.out.println("Output saved to: " + outputPath);
         System.out.println("Discrepancy report saved to: " + reportPath);
 
-        System.out.println("Action: " + action);
-        System.out.println("Output Path: " + outputPath);
-        System.out.println("Original File Name: " + originalFileName);
+//        System.out.println("Action: " + action);
+//        System.out.println("Output Path: " + outputPath);
+//        System.out.println("Original File Name: " + originalFileName);
 
     }
 }

@@ -23,6 +23,7 @@ public class TesseractTextDetector implements TextDetector {
     private int minHeight = DEFAULT_MIN_HEIGHT;
     private int maxWidth = DEFAULT_MAX_WIDTH;
     private int maxHeight = DEFAULT_MAX_HEIGHT;
+    private String quarantineFolderPath = DEFAULT_QUARANTINE_FOLDER;
 
     @Override
     public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
@@ -30,6 +31,15 @@ public class TesseractTextDetector implements TextDetector {
         this.minHeight = minHeight;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
+    }
+
+    @Override
+    public void initialize(DetectorConfig config) {
+        this.minWidth = config.minWidth;
+        this.minHeight = config.minHeight;
+        this.maxWidth = config.maxWidth;
+        this.maxHeight = config.maxHeight;
+        this.quarantineFolderPath = config.quarantinePath;
     }
 
     @Override
