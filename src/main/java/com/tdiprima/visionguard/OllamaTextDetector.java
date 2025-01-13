@@ -101,6 +101,10 @@ public class OllamaTextDetector implements TextDetector {
                 System.out.println("MASK action is not applicable for OllamaTextDetector.");
                 break;
 
+            case BURN:
+                System.out.println("BURN action is not applicable for OllamaTextDetector.");
+                break;                
+
             case EXPORT_TO_FOLDER:
                 saveImageWithMetadata(result.modifiedImage, result.rawResponse, outputPath, originalFileName);
                 break;

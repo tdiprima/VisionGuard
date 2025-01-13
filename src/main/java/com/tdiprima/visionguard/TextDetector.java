@@ -68,6 +68,7 @@ public interface TextDetector {
     public enum Action {
         OUTLINE,
         MASK,
+        BURN,
         EXPORT_TO_FOLDER,
         FLAG_FOR_REVIEW
     }

@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
 /**
- * A text detection implementation that leverages the Tesseract OCR library to 
- * extract text and bounding box information from images, with configurable 
+ * A text detection implementation that leverages the Tesseract OCR library to
+ * extract text and bounding box information from images, with configurable
  * constraints and actions.
  *
  * @author tdiprima
@@ -98,6 +98,11 @@ public class TesseractTextDetector implements TextDetector {
                 saveImage(maskedImage, outputPath, originalFileName);
                 break;
 
+            case BURN:
+                BufferedImage burnedImage = burnTextRegions(result.modifiedImage, result.regions);
+                saveImage(burnedImage, outputPath, originalFileName);
+                break;
+
             case EXPORT_TO_FOLDER:
                 saveImageWithMetadata(result.modifiedImage, result.regions, moveToFolderPath, originalFileName);
                 break;
@@ -173,7 +178,7 @@ public class TesseractTextDetector implements TextDetector {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(metadataFile))) {
                 for (TextRegion region : regions) {
                     writer.write(String.format("Text: '%s', Bounding Box: [x: %d, y: %d, width: %d, height: %d]%n",
-                            region.text, region.x, region.y, region.width, region.height));
+                            region.text.trim(), region.x, region.y, region.width, region.height));
                 }
             }
 
@@ -229,6 +234,21 @@ public class TesseractTextDetector implements TextDetector {
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to save image to folder: {0}", e.getMessage());
         }
+    }
+
+    private BufferedImage burnTextRegions(BufferedImage image, List<TextRegion> regions) {
+        BufferedImage burnedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = burnedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+
+        g2d.setColor(new Color(255, 0, 0, 128)); // Semi-transparent red
+
+        for (TextRegion region : regions) {
+            g2d.fillRect(region.x, region.y, region.width, region.height);
+        }
+
+        g2d.dispose();
+        return burnedImage;
     }
 
 }

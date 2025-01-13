@@ -8,10 +8,10 @@ import java.util.ServiceLoader;
 import javax.imageio.ImageIO;
 
 /**
- * This is is the main application class that orchestrates the text detection process, 
- * integrates multiple detectors, applies specified actions, and generates discrepancy 
- * reports based on the results.
- * 
+ * This is is the main application class that orchestrates the text detection
+ * process, integrates multiple detectors, applies specified actions, and
+ * generates discrepancy reports based on the results.
+ *
  * @author tdiprima
  */
 public class VisionGuard {
@@ -30,13 +30,11 @@ public class VisionGuard {
         boolean enableOllama = parseOptionalFlag(args, "--ollama", false);
 
         TextDetector.Action action = parseAction(actionStr);
-        if (action == null) System.exit(1);
-
-        DetectorConfig config = DetectorConfig.fromArgs(args);
-        if (isPathActionConflict(action, config)) {
-            System.err.println("Error: Specified paths conflict with the selected action.");
+        if (action == null) {
             System.exit(1);
         }
+
+        DetectorConfig config = DetectorConfig.fromArgs(args);
 
         ensureDirectoryExists(outputPath);
         ensureDirectoryExists(reportPath);
@@ -58,7 +56,7 @@ public class VisionGuard {
 
     private static void printUsage() {
         System.out.println("Usage: java VisionGuard <directoryPath> <action> <outputPath> <reportPath>");
-        System.out.println("Actions: OUTLINE, MASK, EXPORT_TO_FOLDER, FLAG_FOR_REVIEW");
+        System.out.println("Actions: OUTLINE, MASK, BURN, EXPORT_TO_FOLDER, FLAG_FOR_REVIEW");
         System.out.println("Optional parameters:");
         System.out.println("  --ollama=true/false  Enable or disable OllamaTextDetector (default: false)");
         System.out.println("  --minWidth=X         Minimum width of bounding boxes");
@@ -131,7 +129,7 @@ public class VisionGuard {
     }
 
     private static void processFiles(File[] files, TextDetector tesseractDetector, TextDetector ollamaDetector,
-                                     TextDetector.Action action, String outputPath, String reportPath) {
+            TextDetector.Action action, String outputPath, String reportPath) {
         for (File file : files) {
             System.out.println("Processing file: " + file.getName());
             try {
@@ -154,11 +152,6 @@ public class VisionGuard {
                 e.printStackTrace();
             }
         }
-    }
-
-    private static boolean isPathActionConflict(TextDetector.Action action, DetectorConfig config) {
-        return (action == TextDetector.Action.FLAG_FOR_REVIEW && config.moveToFolderPath != null) ||
-               (action == TextDetector.Action.EXPORT_TO_FOLDER && config.quarantinePath != null);
     }
 
     private static <T extends TextDetector> T loadDetector(Class<T> detectorClass) {
