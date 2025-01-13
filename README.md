@@ -37,9 +37,11 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
 
 3. Run the program:
 
-   ```sh
+   ```
    Usage: java VisionGuard <imagePath> <action> <outputPath> <reportPath>
+
    Actions: OUTLINE, MASK, MOVE_TO_FOLDER, QUARANTINE
+
    Optional parameters:
      --minWidth=X         Minimum width of bounding boxes
      --minHeight=Y        Minimum height of bounding boxes
@@ -49,24 +51,24 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
      --moveToFolderPath=path Specify move-to-folder path (action=MOVE_TO_FOLDER)
    ```
 
-   Using maven:
-
+   #### Example (using Maven):
    ```sh
    mvn clean package
    java -jar target/VisionGuard-1.0-jar-with-dependencies.jar /images/example.png OUTLINE output.png report.txt
    ```
 
-5. Ensure you configure Tesseract's data path and language in the code:
+4. Ensure you configure Tesseract's data path and language in the code:
 
    ```java
    detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata", "eng");
    ```
 
 ### Supported Actions
+
 - **OUTLINE**: Draw bounding boxes around detected text.
 - **MASK**: Mask detected text regions in the image.
-- **MOVE\_TO\_FOLDER**: For general output organization, e.g., grouping all processed images into an output folder.
-- **QUARANTINE**: To specifically identify and separate suspect or problematic images, such as those containing sensitive data (PHI) or OCR anomalies.
+- **MOVE_TO_FOLDER**: Organize processed images into a specified folder.
+- **QUARANTINE**: Isolate images containing sensitive data or OCR anomalies.
 
 ### Input Requirements
 - Supported image formats: PNG, JPEG
@@ -74,14 +76,13 @@ This tool is ideal for applications in healthcare, compliance, and data redactio
 
 ## Tools
 
-`parse_response_log.py`
+### Additional Utilities
 
-A Python script to help interpret and analyze results from the Ollama vision model. This tool is optional but can aid in debugging and understanding model outputs.
-
+`parse_response_log.py`: A Python script to analyze results from the Ollama vision model. This optional tool assists in debugging and understanding model outputs.
 
 ## Contributing
 
-Contributions are welcome! Fork the repo, create a branch, make your changes, and open a pull request.
+Contributions are welcome! Fork the repository, create a branch, make your changes, and submit a pull request.
 
 ## License
 
