@@ -4,7 +4,8 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 /**
- * This is the "blueprint" for all detector implementations.
+ * An interface defining the blueprint for text detection implementations, including 
+ * methods for configuration, text extraction, and applying actions to detected text regions.
  *
  * @author tdiprima
  */

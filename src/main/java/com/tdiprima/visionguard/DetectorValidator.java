@@ -7,6 +7,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * A utility class that validates and compares the detection results from multiple
+ * text detectors, generating a report to highlight discrepancies or confirm consistency.
+ * 
+ * @author tdiprima
+ */
 public class DetectorValidator {
 
     public static void validate(DetectionResult tesseractResult, DetectionResult ollamaResult, String reportPath) {

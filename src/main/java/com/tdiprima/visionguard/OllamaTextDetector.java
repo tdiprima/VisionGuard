@@ -16,6 +16,12 @@ import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * A text detection implementation that uses an external API to extract text from 
+ * images, with support for configurable server endpoints.
+ * 
+ * @author tdiprima
+ */
 public class OllamaTextDetector implements TextDetector {
 
     private String ollamaServerUrl;
@@ -34,7 +40,7 @@ public class OllamaTextDetector implements TextDetector {
 
     @Override
     public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
-        // Ollama doesn't return bounding boxes
+        // Ollama doesn't return bounding boxes (vision model is not good at it)
         System.out.println("setBoundingBoxConstraints is not applicable for OllamaTextDetector.");
     }
 
@@ -76,29 +82,18 @@ public class OllamaTextDetector implements TextDetector {
                 response = responseObject.get("response").getAsString();
                 System.out.println("Response from Ollama: " + response);
             } else {
-                System.out.println("Response field not found in the response JSON.");
+                logger.log(Level.WARNING, "Response field not found in the response JSON.");
             }
+        } catch (IllegalArgumentException e) {
+            logger.log(Level.SEVERE, "Error during detection (Invalid Argument): {0}", e.getMessage());
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Error during detection (I/O Issue): {0}", e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error during detection: {0}", e.getMessage());
+            logger.log(Level.SEVERE, "Unexpected error during detection: {0}", e.getMessage());
             e.printStackTrace();
         }
         return new DetectionResult(image, response);
-    }
-
-    @Override
-    public void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName) {
-        switch (action) {
-            case MOVE_TO_FOLDER:
-                moveImageToFolder(result.modifiedImage, moveToFolderPath, originalFileName);
-                break;
-
-            case QUARANTINE:
-                moveImageToFolder(result.modifiedImage, quarantineFolderPath, originalFileName);
-                break;
-
-            default:
-                throw new UnsupportedOperationException("Action not supported for OllamaTextDetector: " + action);
-        }
     }
 
     private String encodeImageToBase64(BufferedImage image) {
@@ -111,11 +106,12 @@ public class OllamaTextDetector implements TextDetector {
         }
     }
 
-    private String sendPostRequest(String urlString, String jsonPayload) {
+    private String sendPostRequest(String urlString, String jsonPayload) throws IOException {
         System.out.println("*** QUERYING LLAMA VISION MODEL ***");
         StringBuilder response = new StringBuilder();
+        HttpURLConnection connection = null;
         try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(urlString).openConnection();
+            connection = (HttpURLConnection) new URL(urlString).openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", "application/json");
@@ -133,12 +129,28 @@ public class OllamaTextDetector implements TextDetector {
                     response.append(line);
                 }
             }
-            connection.disconnect();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error sending POST request: {0}", e.getMessage());
-            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
         return response.toString();
+    }
+
+    @Override
+    public void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName) {
+        switch (action) {
+            case MOVE_TO_FOLDER:
+                moveImageToFolder(result.modifiedImage, moveToFolderPath, originalFileName);
+                break;
+
+            case QUARANTINE:
+                moveImageToFolder(result.modifiedImage, quarantineFolderPath, originalFileName);
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Action not supported for OllamaTextDetector: " + action);
+        }
     }
 
     private void moveImageToFolder(BufferedImage image, String outputFolderPath, String originalFileName) {
@@ -159,5 +171,4 @@ public class OllamaTextDetector implements TextDetector {
             System.err.println("Failed to save image: " + e.getMessage());
         }
     }
-
 }

@@ -7,6 +7,13 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.util.ServiceLoader;
 
+/**
+ * This is is the main application class that orchestrates the text detection process, 
+ * integrates multiple detectors, applies specified actions, and generates discrepancy 
+ * reports based on the results.
+ * 
+ * @author tdiprima
+ */
 public class VisionGuard {
 
     public static void main(String[] args) {
@@ -20,7 +27,7 @@ public class VisionGuard {
             System.out.println("  --maxHeight=B        Maximum height of bounding boxes");
             System.out.println("  --quarantinePath=path   Specify quarantine folder (action=QUARANTINE)");
             System.out.println("  --moveToFolderPath=path Specify move-to-folder path (action=MOVE_TO_FOLDER)");
-            return;
+            System.exit(1);
         }
 
         // Parse CLI arguments
@@ -34,7 +41,8 @@ public class VisionGuard {
         try {
             action = TextDetector.Action.valueOf(actionStr);
         } catch (IllegalArgumentException e) {
-            System.out.println("Invalid action. Use OUTLINE, MASK, MOVE_TO_FOLDER, or QUARANTINE.");
+            System.err.println("Invalid action. Use OUTLINE, MASK, MOVE_TO_FOLDER, or QUARANTINE.");
+            System.exit(1);
             return;
         }
 
@@ -42,13 +50,9 @@ public class VisionGuard {
         DetectorConfig config = DetectorConfig.fromArgs(args);
 
         // Validate mutual exclusivity of paths and actions
-        if (action == TextDetector.Action.QUARANTINE && config.moveToFolderPath != null) {
-            System.err.println("Error: Cannot specify moveToFolderPath when action is QUARANTINE.");
-            return;
-        }
-
-        if (action == TextDetector.Action.MOVE_TO_FOLDER && config.quarantinePath != null) {
-            System.err.println("Error: Cannot specify quarantinePath when action is MOVE_TO_FOLDER.");
+        if (isPathActionConflict(action, config)) {
+            System.err.println("Error: Specified paths conflict with the selected action.");
+            System.exit(1);
             return;
         }
 
@@ -57,34 +61,28 @@ public class VisionGuard {
         try {
             image = ImageIO.read(new File(imagePath));
             if (image == null) {
-                throw new IOException("Failed to load image");
+                throw new IOException("Failed to load image. Please check if the file exists and is a valid image format.");
             }
         } catch (IOException e) {
+            System.err.println("Error loading image: " + e.getMessage());
             e.printStackTrace();
+            System.exit(1);
             return;
         }
 
         // Initialize detectors
-        ServiceLoader<TextDetector> loader = ServiceLoader.load(TextDetector.class);
-        TextDetector tesseractDetector = null;
-        TextDetector ollamaDetector = null;
-
-        for (TextDetector detector : loader) {
-            if (detector instanceof TesseractTextDetector) {
-                tesseractDetector = detector;
-            } else if (detector instanceof OllamaTextDetector) {
-                ollamaDetector = detector;
-            }
-        }
+        TextDetector tesseractDetector = loadDetector(TesseractTextDetector.class);
+        TextDetector ollamaDetector = loadDetector(OllamaTextDetector.class);
 
         if (tesseractDetector == null || ollamaDetector == null) {
             System.err.println("Failed to load both TesseractTextDetector and OllamaTextDetector.");
+            System.exit(1);
             return;
         }
 
         // Setup detectors
         tesseractDetector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng");
-        tesseractDetector.setBoundingBoxConstraints(15, 15, 400, 400);
+        tesseractDetector.setBoundingBoxConstraints(config.minWidth, config.minHeight, config.maxWidth, config.maxHeight);
         ollamaDetector.setupParameters("http://localhost:11434/api/generate");
 
         // Initialize the detector with the configuration
@@ -102,6 +100,21 @@ public class VisionGuard {
         System.out.println("Processing completed.");
         System.out.println("Output saved to: " + outputPath);
         System.out.println("Discrepancy report saved to: " + reportPath);
+        System.exit(0);
+    }
 
+    private static boolean isPathActionConflict(TextDetector.Action action, DetectorConfig config) {
+        return (action == TextDetector.Action.QUARANTINE && config.moveToFolderPath != null) ||
+               (action == TextDetector.Action.MOVE_TO_FOLDER && config.quarantinePath != null);
+    }
+
+    private static <T extends TextDetector> T loadDetector(Class<T> detectorClass) {
+        return ServiceLoader.load(TextDetector.class)
+                .stream()
+                .map(ServiceLoader.Provider::get)
+                .filter(detectorClass::isInstance)
+                .map(detectorClass::cast)
+                .findFirst()
+                .orElse(null);
     }
 }

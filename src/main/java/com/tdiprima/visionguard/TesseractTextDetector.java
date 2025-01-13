@@ -7,11 +7,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.imageio.ImageIO;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 
 /**
- * Concrete implementation using Tesseract
+ * A text detection implementation that leverages the Tesseract OCR library to 
+ * extract text and bounding box information from images, with configurable 
+ * constraints and actions.
  *
  * @author tdiprima
  */
@@ -41,16 +44,7 @@ public class TesseractTextDetector implements TextDetector {
         this.maxWidth = config.maxWidth;
         this.maxHeight = config.maxHeight;
         this.quarantineFolderPath = config.quarantinePath != null ? config.quarantinePath : DEFAULT_QUARANTINE_FOLDER;
-        this.moveToFolderPath = config.moveToFolderPath != null ? config.moveToFolderPath : "output";
-
-        // Log default path usage
-        if (config.quarantinePath == null) {
-            System.out.println("Using default quarantine path: " + DEFAULT_QUARANTINE_FOLDER);
-        }
-
-        if (config.moveToFolderPath == null) {
-            System.out.println("Using default move-to-folder path: output");
-        }
+        this.moveToFolderPath = config.moveToFolderPath != null ? config.moveToFolderPath : DEFAULT_MOVE_FOLDER;
     }
 
     @Override
@@ -78,15 +72,15 @@ public class TesseractTextDetector implements TextDetector {
                 int width = word.getBoundingBox().width;
                 int height = word.getBoundingBox().height;
 
-                System.out.printf("Detected region: [x=%d, y=%d, width=%d, height=%d, text='%s']%n", x, y, width, height, word.getText().trim());
-
+                // System.out.printf("Detected region: [x=%d, y=%d, width=%d, height=%d, text='%s']%n", x, y, width, height, word.getText().trim());
                 // Apply size constraints
                 if (width >= minWidth && height >= minHeight && width <= maxWidth && height <= maxHeight) {
                     regions.add(new TextRegion(x, y, width, height, word.getText()));
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) { // Catch any exception
+            logger.log(Level.SEVERE, "Unexpected error during Tesseract OCR: {0}", e.getMessage());
+            throw new RuntimeException("Unexpected error during OCR processing: " + e.getMessage(), e);
         }
 
         return new DetectionResult(image, regions);
@@ -106,11 +100,11 @@ public class TesseractTextDetector implements TextDetector {
                 break;
 
             case MOVE_TO_FOLDER:
-                moveImageToFolder(result.modifiedImage, moveToFolderPath, originalFileName); // Use moveToFolderPath from config
+                moveImageToFolder(result.modifiedImage, moveToFolderPath, originalFileName);
                 break;
 
             case QUARANTINE:
-                moveImageToFolder(result.modifiedImage, quarantineFolderPath, originalFileName); // Use quarantineFolderPath from config
+                moveImageToFolder(result.modifiedImage, quarantineFolderPath, originalFileName);
                 break;
 
             default:
@@ -120,9 +114,7 @@ public class TesseractTextDetector implements TextDetector {
 
     // Utility to draw bounding boxes on the image
     private BufferedImage outlineTextRegions(BufferedImage image, List<TextRegion> regions) {
-        BufferedImage outlinedImage = new BufferedImage(
-                image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB
-        );
+        BufferedImage outlinedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = outlinedImage.createGraphics();
         g2d.drawImage(image, 0, 0, null);
 
@@ -130,12 +122,12 @@ public class TesseractTextDetector implements TextDetector {
 
         if (regions == null || regions.isEmpty()) {
             System.out.println("No regions to outline.");
+            g2d.dispose();
             return image; // Return original image if no regions found
         }
 
         for (TextRegion region : regions) {
-            System.out.printf("Drawing bounding box: x=%d, y=%d, width=%d, height=%d%n",
-                    region.x, region.y, region.width, region.height);
+            // System.out.printf("Drawing bounding box: x=%d, y=%d, width=%d, height=%d%n", region.x, region.y, region.width, region.height)
             g2d.drawRect(region.x, region.y, region.width, region.height);
         }
 
@@ -149,27 +141,21 @@ public class TesseractTextDetector implements TextDetector {
         String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
         File outputFile = new File(outputPath, fileName);
 
-        System.out.println("Attempting to save image: " + outputFile.getAbsolutePath());
-
         try {
             ImageIO.write(image, "png", outputFile);
-            System.out.println("Image saved successfully to: " + outputFile.getAbsolutePath());
         } catch (IOException e) {
-            System.err.println("Failed to save image: " + e.getMessage());
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Failed to save image: {0}", e.getMessage());
         }
     }
 
     // Utility to mask text regions
     private BufferedImage maskTextRegions(BufferedImage image, List<TextRegion> regions) {
-        BufferedImage maskedImage = new BufferedImage(
-                image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB
-        );
+        BufferedImage maskedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = maskedImage.createGraphics();
         g2d.drawImage(image, 0, 0, null);
 
-        g2d.setColor(new Color(0, 0, 0, 255)); // Black mask
-        // g2d.setColor(new Color(255, 0, 0, 128)); // Red semi-transparent
+        g2d.setColor(Color.BLACK);
+
         for (TextRegion region : regions) {
             g2d.fillRect(region.x, region.y, region.width, region.height);
         }
@@ -182,7 +168,7 @@ public class TesseractTextDetector implements TextDetector {
     private void moveImageToFolder(BufferedImage image, String outputFolderPath, String originalFileName) {
         File folder = new File(outputFolderPath);
         if (!folder.exists() && !folder.mkdirs()) {
-            System.err.println("Failed to create output folder: " + outputFolderPath);
+            logger.log(Level.SEVERE, "Failed to create output folder: {0}", outputFolderPath);
             return;
         }
 
@@ -190,14 +176,10 @@ public class TesseractTextDetector implements TextDetector {
         String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
         File outputFile = new File(folder, fileName);
 
-        System.out.println("Saving image to quarantine folder: " + outputFile.getAbsolutePath());
-
         try {
             ImageIO.write(image, "png", outputFile);
-            System.out.println("Image saved to quarantine successfully.");
         } catch (IOException e) {
-            System.err.println("Failed to save image to quarantine: " + e.getMessage());
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Failed to save image to folder: {0}", e.getMessage());
         }
     }
 
