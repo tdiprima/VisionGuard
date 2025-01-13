@@ -68,8 +68,8 @@ public interface TextDetector {
     public enum Action {
         OUTLINE,
         MASK,
-        MOVE_TO_FOLDER,
-        QUARANTINE
+        EXPORT_TO_FOLDER,
+        FLAG_FOR_REVIEW
     }
 
     void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName);

@@ -3,8 +3,7 @@ package com.tdiprima.visionguard;
 import net.sourceforge.tess4j.Tesseract;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -78,7 +77,7 @@ public class TesseractTextDetector implements TextDetector {
                     regions.add(new TextRegion(x, y, width, height, word.getText()));
                 }
             }
-        } catch (Exception e) { // Catch any exception
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error during Tesseract OCR: {0}", e.getMessage());
             throw new RuntimeException("Unexpected error during OCR processing: " + e.getMessage(), e);
         }
@@ -99,12 +98,13 @@ public class TesseractTextDetector implements TextDetector {
                 saveImage(maskedImage, outputPath, originalFileName);
                 break;
 
-            case MOVE_TO_FOLDER:
-                moveImageToFolder(result.modifiedImage, moveToFolderPath, originalFileName);
+            case EXPORT_TO_FOLDER:
+                saveImageWithMetadata(result.modifiedImage, result.regions, moveToFolderPath, originalFileName);
                 break;
 
-            case QUARANTINE:
-                moveImageToFolder(result.modifiedImage, quarantineFolderPath, originalFileName);
+            case FLAG_FOR_REVIEW:
+                BufferedImage flaggedImage = addWatermark(result.modifiedImage, "QUARANTINE");
+                moveImageToFolder(flaggedImage, quarantineFolderPath, originalFileName);
                 break;
 
             default:
@@ -133,6 +133,54 @@ public class TesseractTextDetector implements TextDetector {
 
         g2d.dispose();
         return outlinedImage;
+    }
+
+    private BufferedImage addWatermark(BufferedImage image, String watermarkText) {
+        BufferedImage watermarkedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = watermarkedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+
+        // Configure watermark properties
+        g2d.setFont(new Font("Arial", Font.BOLD, 48));
+        g2d.setColor(new Color(255, 0, 0, 128)); // Semi-transparent red
+        FontMetrics metrics = g2d.getFontMetrics();
+        int x = (image.getWidth() - metrics.stringWidth(watermarkText)) / 2;
+        int y = image.getHeight() / 2;
+
+        g2d.drawString(watermarkText, x, y);
+        g2d.dispose();
+
+        return watermarkedImage;
+    }
+
+    private void saveImageWithMetadata(BufferedImage image, List<TextRegion> regions, String outputPath, String originalFileName) {
+        File folder = new File(outputPath);
+        if (!folder.exists() && !folder.mkdirs()) {
+            logger.log(Level.SEVERE, "Failed to create output folder: {0}", outputPath);
+            return;
+        }
+
+        String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
+        String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
+        File outputFile = new File(folder, fileName);
+
+        try {
+            // Save the image
+            ImageIO.write(image, "png", outputFile);
+
+            // Save metadata
+            File metadataFile = new File(folder, baseName + "_" + System.currentTimeMillis() + ".txt");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(metadataFile))) {
+                for (TextRegion region : regions) {
+                    writer.write(String.format("Text: '%s', Bounding Box: [x: %d, y: %d, width: %d, height: %d]%n",
+                            region.text, region.x, region.y, region.width, region.height));
+                }
+            }
+
+            logger.log(Level.INFO, "Image and metadata saved to: {0}", outputFile.getAbsolutePath());
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to save image or metadata: {0}", e.getMessage());
+        }
     }
 
     // Utility to save an image to disk

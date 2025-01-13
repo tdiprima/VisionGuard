@@ -19,14 +19,14 @@ public class VisionGuard {
     public static void main(String[] args) {
         if (args.length < 4) {
             System.out.println("Usage: java VisionGuard <imagePath> <action> <outputPath> <reportPath>");
-            System.out.println("Actions: OUTLINE, MASK, MOVE_TO_FOLDER, QUARANTINE");
+            System.out.println("Actions: OUTLINE, MASK, EXPORT_TO_FOLDER, FLAG_FOR_REVIEW");
             System.out.println("Optional parameters:");
             System.out.println("  --minWidth=X         Minimum width of bounding boxes");
             System.out.println("  --minHeight=Y        Minimum height of bounding boxes");
             System.out.println("  --maxWidth=A         Maximum width of bounding boxes");
             System.out.println("  --maxHeight=B        Maximum height of bounding boxes");
-            System.out.println("  --quarantinePath=path   Specify quarantine folder (action=QUARANTINE)");
-            System.out.println("  --moveToFolderPath=path Specify move-to-folder path (action=MOVE_TO_FOLDER)");
+            System.out.println("  --quarantinePath=path   Specify quarantine folder (action=FLAG_FOR_REVIEW)");
+            System.out.println("  --moveToFolderPath=path Specify move-to-folder path (action=EXPORT_TO_FOLDER)");
             System.exit(1);
         }
 
@@ -41,7 +41,7 @@ public class VisionGuard {
         try {
             action = TextDetector.Action.valueOf(actionStr);
         } catch (IllegalArgumentException e) {
-            System.err.println("Invalid action. Use OUTLINE, MASK, MOVE_TO_FOLDER, or QUARANTINE.");
+            System.err.println("Invalid action. Use OUTLINE, MASK, EXPORT_TO_FOLDER, or FLAG_FOR_REVIEW.");
             System.exit(1);
             return;
         }
@@ -104,8 +104,8 @@ public class VisionGuard {
     }
 
     private static boolean isPathActionConflict(TextDetector.Action action, DetectorConfig config) {
-        return (action == TextDetector.Action.QUARANTINE && config.moveToFolderPath != null) ||
-               (action == TextDetector.Action.MOVE_TO_FOLDER && config.quarantinePath != null);
+        return (action == TextDetector.Action.FLAG_FOR_REVIEW && config.moveToFolderPath != null) ||
+               (action == TextDetector.Action.EXPORT_TO_FOLDER && config.quarantinePath != null);
     }
 
     private static <T extends TextDetector> T loadDetector(Class<T> detectorClass) {
