@@ -8,9 +8,10 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * A utility class that validates and compares the detection results from multiple
- * text detectors, generating a report to highlight discrepancies or confirm consistency.
- * 
+ * A utility class that validates and compares the detection results from
+ * multiple text detectors, generating a report to highlight discrepancies or
+ * confirm consistency.
+ *
  * @author tdiprima
  */
 public class DetectorValidator {
@@ -27,24 +28,28 @@ public class DetectorValidator {
                 writer.write("No regions detected by Tesseract.\n");
             }
 
-            writer.write("\n*** Ollama Response ***\n\n");
-            if (ollamaResult.rawResponse != null && !ollamaResult.rawResponse.isEmpty()) {
-                writer.write("Raw Ollama Response: " + ollamaResult.rawResponse + "\n");
+            if (ollamaResult != null) {
+                writer.write("\n*** Ollama Response ***\n\n");
+                if (ollamaResult.rawResponse != null && !ollamaResult.rawResponse.isEmpty()) {
+                    writer.write("Raw Ollama Response: " + ollamaResult.rawResponse + "\n");
 
-                // Optional: Extract meaningful text from Ollama response if required
-                List<String> ollamaTexts = extractTextFromOllamaResponse(ollamaResult.rawResponse);
-                if (!ollamaTexts.isEmpty()) {
-                    writer.write("\nExtracted Texts from Ollama:\n");
-                    for (String text : ollamaTexts) {
-                        writer.write("- " + text + "\n");
+                    // Extract meaningful text from Ollama response if required
+                    List<String> ollamaTexts = extractTextFromOllamaResponse(ollamaResult.rawResponse);
+                    if (!ollamaTexts.isEmpty()) {
+                        writer.write("\nExtracted Texts from Ollama:\n");
+                        for (String text : ollamaTexts) {
+                            writer.write("- " + text + "\n");
+                        }
                     }
+                } else {
+                    writer.write("No response received from Ollama.\n");
                 }
-            } else {
-                writer.write("No response received from Ollama.\n");
-            }
 
-            // Optional: Compare Tesseract detected regions and extracted Ollama texts
-            compareResults(tesseractResult, ollamaResult, writer);
+                // Compare Tesseract detected regions and extracted Ollama texts
+                compareResults(tesseractResult, ollamaResult, writer);
+            } else {
+                writer.write("\n*** Ollama Detection Skipped ***\n");
+            }
 
         } catch (IOException e) {
             e.printStackTrace();

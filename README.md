@@ -3,6 +3,8 @@
 
 VisionGuard is a robust image processing and text detection system designed to process images, extract text, and apply various actions based on user-defined configurations. Leveraging the power of Tesseract OCR and external API integrations, VisionGuard provides a flexible and extensible platform for handling text detection tasks.
 
+![VisionGuard Workflow](VisionGuardWorkflow.png)
+
 ## Features
 
 - **Text Detection**:
@@ -57,7 +59,7 @@ VisionGuard is a robust image processing and text detection system designed to p
 2. Example command:
 
    ```bash
-   java VisionGuard input/ OUTLINE output/ report.txt --minWidth=20 --minHeight=20 --maxWidth=500 --maxHeight=500
+   java VisionGuard input/ OUTLINE output/ report/ --minWidth=20 --minHeight=20 --maxWidth=500 --maxHeight=500
    ```
 
 ### Actions
@@ -73,6 +75,7 @@ VisionGuard is a robust image processing and text detection system designed to p
 
 | Parameter             | Description                                              | Default Value      |
 |-----------------------|----------------------------------------------------------|--------------------|
+| `--ollama=true/false` | Enable or disable OllamaTextDetector                     | `false`
 | `--minWidth=X`        | Minimum width of bounding boxes.                         | `10`               |
 | `--minHeight=Y`       | Minimum height of bounding boxes.                        | `10`               |
 | `--maxWidth=A`        | Maximum width of bounding boxes.                         | `500`              |

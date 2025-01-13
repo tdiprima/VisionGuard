@@ -18,15 +18,7 @@ public class VisionGuard {
 
     public static void main(String[] args) {
         if (args.length < 4) {
-            System.out.println("Usage: java VisionGuard <directoryPath> <action> <outputPath> <reportPath>");
-            System.out.println("Actions: OUTLINE, MASK, EXPORT_TO_FOLDER, FLAG_FOR_REVIEW");
-            System.out.println("Optional parameters:");
-            System.out.println("  --minWidth=X         Minimum width of bounding boxes");
-            System.out.println("  --minHeight=Y        Minimum height of bounding boxes");
-            System.out.println("  --maxWidth=A         Maximum width of bounding boxes");
-            System.out.println("  --maxHeight=B        Maximum height of bounding boxes");
-            System.out.println("  --quarantinePath=path   Specify quarantine folder (action=FLAG_FOR_REVIEW)");
-            System.out.println("  --moveToFolderPath=path Specify move-to-folder path (action=EXPORT_TO_FOLDER)");
+            printUsage();
             System.exit(1);
         }
 
@@ -35,59 +27,111 @@ public class VisionGuard {
         String actionStr = args[1].toUpperCase();
         String outputPath = args[2];
         String reportPath = args[3];
+        boolean enableOllama = parseOptionalFlag(args, "--ollama", false);
 
-        TextDetector.Action action;
-        try {
-            action = TextDetector.Action.valueOf(actionStr);
-        } catch (IllegalArgumentException e) {
-            System.err.println("Invalid action. Use OUTLINE, MASK, EXPORT_TO_FOLDER, or FLAG_FOR_REVIEW.");
-            System.exit(1);
-            return;
-        }
+        TextDetector.Action action = parseAction(actionStr);
+        if (action == null) System.exit(1);
 
-        // Load configuration from CLI arguments
         DetectorConfig config = DetectorConfig.fromArgs(args);
-
-        // Validate mutual exclusivity of paths and actions
         if (isPathActionConflict(action, config)) {
             System.err.println("Error: Specified paths conflict with the selected action.");
             System.exit(1);
-            return;
+        }
+
+        ensureDirectoryExists(outputPath);
+        ensureDirectoryExists(reportPath);
+
+        File[] imageFiles = listImageFiles(directoryPath);
+        if (imageFiles == null || imageFiles.length == 0) {
+            System.err.println("No image files found in the directory: " + directoryPath);
+            System.exit(1);
         }
 
         // Initialize detectors
-        TextDetector tesseractDetector = loadDetector(TesseractTextDetector.class);
-        TextDetector ollamaDetector = loadDetector(OllamaTextDetector.class);
+        TextDetector tesseractDetector = initializeTesseract(config);
+        TextDetector ollamaDetector = enableOllama ? initializeOllama() : null;
 
-        if (tesseractDetector == null || ollamaDetector == null) {
-            System.err.println("Failed to load both TesseractTextDetector and OllamaTextDetector.");
-            System.exit(1);
-            return;
+        processFiles(imageFiles, tesseractDetector, ollamaDetector, action, outputPath, reportPath);
+
+        System.out.println("All files in the directory have been processed.");
+    }
+
+    private static void printUsage() {
+        System.out.println("Usage: java VisionGuard <directoryPath> <action> <outputPath> <reportPath>");
+        System.out.println("Actions: OUTLINE, MASK, EXPORT_TO_FOLDER, FLAG_FOR_REVIEW");
+        System.out.println("Optional parameters:");
+        System.out.println("  --ollama=true/false  Enable or disable OllamaTextDetector (default: false)");
+        System.out.println("  --minWidth=X         Minimum width of bounding boxes");
+        System.out.println("  --minHeight=Y        Minimum height of bounding boxes");
+        System.out.println("  --maxWidth=A         Maximum width of bounding boxes");
+        System.out.println("  --maxHeight=B        Maximum height of bounding boxes");
+        System.out.println("  --quarantinePath=path   Specify quarantine folder (action=FLAG_FOR_REVIEW)");
+        System.out.println("  --moveToFolderPath=path Specify move-to-folder path (action=EXPORT_TO_FOLDER)");
+    }
+
+    private static boolean parseOptionalFlag(String[] args, String flag, boolean defaultValue) {
+        for (String arg : args) {
+            if (arg.startsWith(flag + "=")) {
+                return Boolean.parseBoolean(arg.split("=")[1]);
+            }
         }
+        return defaultValue;
+    }
 
-        // Setup detectors
-        tesseractDetector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng");
-        tesseractDetector.setBoundingBoxConstraints(config.minWidth, config.minHeight, config.maxWidth, config.maxHeight);
-        ollamaDetector.setupParameters("http://localhost:11434/api/generate");
+    private static TextDetector.Action parseAction(String actionStr) {
+        try {
+            return TextDetector.Action.valueOf(actionStr);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid action. Use OUTLINE, MASK, EXPORT_TO_FOLDER, or FLAG_FOR_REVIEW.");
+            return null;
+        }
+    }
 
-        // Initialize the detector with the configuration
-        tesseractDetector.initialize(config);
-
-        // Process all files in the directory
+    private static File[] listImageFiles(String directoryPath) {
         File directory = new File(directoryPath);
         if (!directory.isDirectory()) {
             System.err.println("The specified path is not a directory: " + directoryPath);
-            System.exit(1);
-            return;
+            return null;
         }
+        return directory.listFiles((dir, name) -> name.matches(".*\\.(jpg|jpeg|png|bmp)$"));
+    }
 
-        File[] files = directory.listFiles((dir, name) -> name.matches(".*\\.(jpg|jpeg|png|bmp)$"));
-        if (files == null || files.length == 0) {
-            System.err.println("No image files found in the directory: " + directoryPath);
-            System.exit(1);
-            return;
+    private static void ensureDirectoryExists(String path) {
+        File directory = new File(path);
+        if (!directory.exists()) {
+            if (directory.mkdirs()) {
+                System.out.println("Created directory: " + path);
+            } else {
+                System.err.println("Failed to create directory: " + path);
+                System.exit(1);
+            }
         }
+    }
 
+    private static TextDetector initializeTesseract(DetectorConfig config) {
+        TextDetector detector = loadDetector(TesseractTextDetector.class);
+        if (detector == null) {
+            System.err.println("Failed to load TesseractTextDetector.");
+            System.exit(1);
+        }
+        detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng");
+        detector.setBoundingBoxConstraints(config.minWidth, config.minHeight, config.maxWidth, config.maxHeight);
+        detector.initialize(config);
+        return detector;
+    }
+
+    private static TextDetector initializeOllama() {
+        TextDetector detector = loadDetector(OllamaTextDetector.class);
+        if (detector == null) {
+            System.err.println("Failed to load OllamaTextDetector.");
+            System.exit(1);
+        }
+        detector.setupParameters("http://localhost:11434/api/generate");
+        return detector;
+    }
+
+    private static void processFiles(File[] files, TextDetector tesseractDetector, TextDetector ollamaDetector,
+                                     TextDetector.Action action, String outputPath, String reportPath) {
         for (File file : files) {
             System.out.println("Processing file: " + file.getName());
             try {
@@ -96,14 +140,11 @@ public class VisionGuard {
                     throw new IOException("Failed to load image. Skipping: " + file.getName());
                 }
 
-                // Perform detection
                 DetectionResult tesseractResult = tesseractDetector.detect(image, null);
-                DetectionResult ollamaResult = ollamaDetector.detect(image, null);
+                DetectionResult ollamaResult = ollamaDetector != null ? ollamaDetector.detect(image, null) : null;
 
-                // Apply the selected action for Tesseract results
                 tesseractDetector.applyAction(action, tesseractResult, outputPath, file.getName());
 
-                // Validate results and generate a discrepancy report
                 String individualReportPath = reportPath + "/" + file.getName() + "_report.txt";
                 DetectorValidator.validate(tesseractResult, ollamaResult, individualReportPath);
 
@@ -113,9 +154,6 @@ public class VisionGuard {
                 e.printStackTrace();
             }
         }
-
-        System.out.println("All files in the directory have been processed.");
-        System.exit(0);
     }
 
     private static boolean isPathActionConflict(TextDetector.Action action, DetectorConfig config) {
