@@ -32,6 +32,8 @@ VisionGuard is a robust image processing and text detection system designed to p
    - Install Tesseract OCR on your system. For example:
 
      ```bash
+     brew install tesseract
+     # OR
      sudo apt-get install tesseract-ocr
      ```
 
