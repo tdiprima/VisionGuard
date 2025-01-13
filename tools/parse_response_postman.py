@@ -2,22 +2,22 @@ import json
 
 
 def extract_responses_from_lines(file_path):
-    responses = []
-    done_found = False
+    m_responses = []
+    m_done_found = False
 
     with open(file_path, 'r') as file:
         for line in file:
             try:
                 obj = json.loads(line.strip())  # Parse each line as a JSON object
                 if "response" in obj:
-                    responses.append(obj["response"])
+                    m_responses.append(obj["response"])
                 if obj.get("done") is True:
-                    done_found = True
+                    m_done_found = True
                     break
             except json.JSONDecodeError as e:
                 print(f"Invalid JSON object: {line.strip()} | Error: {e}")
 
-    return responses, done_found
+    return m_responses, m_done_found
 
 
 # Parse the file and extract responses

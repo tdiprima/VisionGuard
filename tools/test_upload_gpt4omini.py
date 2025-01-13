@@ -8,8 +8,8 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 # Function to encode the image
-def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
+def encode_image(m_image_path):
+    with open(m_image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 
