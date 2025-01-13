@@ -12,6 +12,8 @@ import javax.imageio.ImageIO;
  * integrates multiple detectors, applies specified actions, and generates discrepancy 
  * reports based on the results.
  * 
+ * Updated to process all images in a directory instead of a single image.
+ * 
  * @author tdiprima
  */
 public class VisionGuard {
@@ -133,3 +135,4 @@ public class VisionGuard {
                 .orElse(null);
     }
 }
+

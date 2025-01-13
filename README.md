@@ -10,6 +10,7 @@ VisionGuard is a robust image processing and text detection system designed to p
   - External API support via OllamaTextDetector for alternative text extraction methods.
 
 - **Configurable Actions**:
+
   - `OUTLINE`: Highlight detected text regions with bounding boxes.
   - `MASK`: Obscure detected text regions for privacy purposes.
   - `EXPORT_TO_FOLDER`: Save processed images and metadata to a designated folder.
@@ -48,13 +49,13 @@ VisionGuard is a robust image processing and text detection system designed to p
 
    ```bash
    javac -cp . com/tdiprima/visionguard/VisionGuard.java
-   java com.tdiprima.visionguard.VisionGuard <imagePath> <action> <outputPath> <reportPath> [options]
+   java com.tdiprima.visionguard.VisionGuard <directoryPath> <action> <outputPath> <reportPath> [options]
    ```
 
 2. Example command:
 
    ```bash
-   java VisionGuard input.jpg OUTLINE output/ report.txt --minWidth=20 --minHeight=20 --maxWidth=500 --maxHeight=500
+   java VisionGuard input/ OUTLINE output/ report.txt --minWidth=20 --minHeight=20 --maxWidth=500 --maxHeight=500
    ```
 
 ### Actions
