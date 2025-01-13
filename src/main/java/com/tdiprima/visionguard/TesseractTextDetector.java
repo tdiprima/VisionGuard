@@ -25,8 +25,6 @@ public class TesseractTextDetector implements TextDetector {
     private int minHeight = DEFAULT_MIN_HEIGHT;
     private int maxWidth = DEFAULT_MAX_WIDTH;
     private int maxHeight = DEFAULT_MAX_HEIGHT;
-    private String quarantineFolderPath = DEFAULT_QUARANTINE_FOLDER;
-    private String moveToFolderPath = DEFAULT_MOVE_FOLDER;
 
     @Override
     public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
@@ -42,8 +40,6 @@ public class TesseractTextDetector implements TextDetector {
         this.minHeight = config.minHeight;
         this.maxWidth = config.maxWidth;
         this.maxHeight = config.maxHeight;
-        this.quarantineFolderPath = config.quarantinePath != null ? config.quarantinePath : DEFAULT_QUARANTINE_FOLDER;
-        this.moveToFolderPath = config.moveToFolderPath != null ? config.moveToFolderPath : DEFAULT_MOVE_FOLDER;
     }
 
     @Override
@@ -104,12 +100,12 @@ public class TesseractTextDetector implements TextDetector {
                 break;
 
             case EXPORT_TO_FOLDER:
-                saveImageWithMetadata(result.modifiedImage, result.regions, moveToFolderPath, originalFileName);
+                saveImageWithMetadata(result.modifiedImage, result.regions, outputPath, originalFileName);
                 break;
 
             case FLAG_FOR_REVIEW:
                 BufferedImage flaggedImage = addWatermark(result.modifiedImage, "QUARANTINE");
-                moveImageToFolder(flaggedImage, quarantineFolderPath, originalFileName);
+                saveImage(flaggedImage, outputPath, originalFileName);
                 break;
 
             default:

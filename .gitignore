@@ -4,6 +4,9 @@ output.png
 *.txt
 report
 
+# Netbeans
+nbactions.xml
+
 # Compiled class file
 *.class
 

@@ -34,13 +34,14 @@ VisionGuard is a robust image processing and text detection system designed to p
 2. **Tesseract OCR**:
    - Install Tesseract OCR on your system. For example:
 
-     ```bash
+     ```sh
      brew install tesseract
      # OR
      sudo apt-get install tesseract-ocr
      ```
 
    - Specify the Tesseract data path in CLI arguments or code configurations.
+
 3. **Dependencies**:
    - Add the required dependencies to your `pom.xml` or equivalent build configuration:
      - [Tesseract4J](https://github.com/nguyenq/tess4j)
@@ -52,15 +53,20 @@ VisionGuard is a robust image processing and text detection system designed to p
 
 1. Compile and run the project:
 
-   ```bash
+   ```sh
    javac -cp . com/tdiprima/visionguard/VisionGuard.java
    java com.tdiprima.visionguard.VisionGuard <directoryPath> <action> <outputPath> <reportPath> [options]
    ```
 
 2. Example command:
 
-   ```bash
+   ```sh
    java VisionGuard input/ OUTLINE output/ report/ --minWidth=20 --minHeight=20 --maxWidth=500 --maxHeight=500
+   ```
+
+   ```sh
+   # Displays the actions and parameters, below
+   java VisionGuard --help
    ```
 
 ### Actions
@@ -82,8 +88,6 @@ VisionGuard is a robust image processing and text detection system designed to p
 | `--minHeight=Y`       | Minimum height of bounding boxes.                        | `10`               |
 | `--maxWidth=A`        | Maximum width of bounding boxes.                         | `500`              |
 | `--maxHeight=B`       | Maximum height of bounding boxes.                        | `500`              |
-| `--quarantinePath=Z`  | Folder to save quarantined images.                       | `quarantine`       |
-| `--moveToFolderPath=W`| Folder to save processed images when using MOVE_TO_FOLDER.| `output`           |
 
 ## Project Structure
 
@@ -98,7 +102,7 @@ com/tdiprima/visionguard/
 └── resources/                   # Resource files (e.g., Tesseract training data)
 ```
 
-## Development
+## How to Contribute
 
 ### Adding a New Detector
 1. Implement the `TextDetector` interface.
@@ -107,7 +111,7 @@ com/tdiprima/visionguard/
 
 ### Extending Actions
 1. Add a new action to the `Action` enum in `TextDetector`.
-2. Implement the logic in each detector’s `applyAction` method.
+2. Implement the logic in each detector's `applyAction` method.
 3. Update `VisionGuard` to handle the new action in its workflow.
 
 ## License

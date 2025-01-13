@@ -16,9 +16,9 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 
 /**
- * A text detection implementation that uses an external API to extract text from 
- * images, with support for configurable server endpoints.
- * 
+ * A text detection implementation that uses an external API to extract text
+ * from images, with support for configurable server endpoints.
+ *
  * @author tdiprima
  */
 public class OllamaTextDetector implements TextDetector {
@@ -30,11 +30,7 @@ public class OllamaTextDetector implements TextDetector {
 
     @Override
     public void initialize(DetectorConfig config) {
-        this.quarantineFolderPath = config.quarantinePath != null ? config.quarantinePath : DEFAULT_QUARANTINE_FOLDER;
-        this.moveToFolderPath = config.moveToFolderPath != null ? config.moveToFolderPath : DEFAULT_MOVE_FOLDER;
-
-        System.out.println("Using quarantine path: " + this.quarantineFolderPath);
-        System.out.println("Using move-to-folder path: " + this.moveToFolderPath);
+        // Removed quarantineFolderPath and moveToFolderPath usage
     }
 
     @Override
@@ -103,7 +99,7 @@ public class OllamaTextDetector implements TextDetector {
 
             case BURN:
                 System.out.println("BURN action is not applicable for OllamaTextDetector.");
-                break;                
+                break;
 
             case EXPORT_TO_FOLDER:
                 saveImageWithMetadata(result.modifiedImage, result.rawResponse, outputPath, originalFileName);
@@ -111,7 +107,7 @@ public class OllamaTextDetector implements TextDetector {
 
             case FLAG_FOR_REVIEW:
                 BufferedImage flaggedImage = addWatermark(result.modifiedImage, "QUARANTINE");
-                moveImageToFolder(flaggedImage, quarantineFolderPath, originalFileName);
+                moveImageToFolder(flaggedImage, outputPath, originalFileName);
                 break;
 
             default:

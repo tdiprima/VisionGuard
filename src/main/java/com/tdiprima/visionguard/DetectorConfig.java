@@ -10,8 +10,6 @@ public class DetectorConfig {
     public int minHeight = 10;
     public int maxWidth = 500;
     public int maxHeight = 500;
-    public String quarantinePath = "quarantine";
-    public String moveToFolderPath = "output";
 
     // Load parameters from CLI arguments
     public static DetectorConfig fromArgs(String[] args) {
@@ -29,12 +27,6 @@ public class DetectorConfig {
                 }
                 if (arg.startsWith("--maxHeight=")) {
                     config.maxHeight = parsePositiveInt(arg.split("=")[1], config.maxHeight, "maxHeight");
-                }
-                if (arg.startsWith("--quarantinePath=")) {
-                    config.quarantinePath = arg.split("=")[1];
-                }
-                if (arg.startsWith("--moveToFolderPath=")) {
-                    config.moveToFolderPath = arg.split("=")[1];
                 }
             }
 

@@ -8,7 +8,7 @@ import java.util.ServiceLoader;
 import javax.imageio.ImageIO;
 
 /**
- * This is is the main application class that orchestrates the text detection
+ * This is the main application class that orchestrates the text detection
  * process, integrates multiple detectors, applies specified actions, and
  * generates discrepancy reports based on the results.
  *
@@ -17,6 +17,11 @@ import javax.imageio.ImageIO;
 public class VisionGuard {
 
     public static void main(String[] args) {
+        if (args.length == 1 && args[0].equalsIgnoreCase("--help")) {
+            printUsage();
+            System.exit(0);
+        }
+
         if (args.length < 4) {
             printUsage();
             System.exit(1);
@@ -63,8 +68,6 @@ public class VisionGuard {
         System.out.println("  --minHeight=Y        Minimum height of bounding boxes");
         System.out.println("  --maxWidth=A         Maximum width of bounding boxes");
         System.out.println("  --maxHeight=B        Maximum height of bounding boxes");
-        System.out.println("  --quarantinePath=path   Specify quarantine folder (action=FLAG_FOR_REVIEW)");
-        System.out.println("  --moveToFolderPath=path Specify move-to-folder path (action=EXPORT_TO_FOLDER)");
     }
 
     private static boolean parseOptionalFlag(String[] args, String flag, boolean defaultValue) {
