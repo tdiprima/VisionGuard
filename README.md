@@ -1,91 +1,108 @@
 <!-- cp /usr/local/lib/libtesseract.dylib /Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/lib/ -->
 # VisionGuard
 
-VisionGuard is a Java-based tool for detecting and protecting sensitive text in images, such as Protected Health Information (PHI). It uses OCR tools like Tesseract and supports extensibility with Java Service Provider Interface (SPI). 
-
-This tool is ideal for applications in healthcare, compliance, and data redaction systems.
+VisionGuard is a robust image processing and text detection system designed to process images, extract text, and apply various actions based on user-defined configurations. Leveraging the power of Tesseract OCR and external API integrations, VisionGuard provides a flexible and extensible platform for handling text detection tasks.
 
 ## Features
 
-- Detect and extract text regions from images.
-- Mask sensitive information (e.g., PHI) in images.
-- Modular architecture with SPI for adding custom detectors.
-- Cross-validation between Tesseract OCR and llama3.2-vision model.
-- Generates detailed reports highlighting discrepancies between detectors.
+- **Text Detection**:
+  - Detect text regions and extract textual content using Tesseract OCR.
+  - External API support via OllamaTextDetector for alternative text extraction methods.
+
+- **Configurable Actions**:
+  - `OUTLINE`: Highlight detected text regions with bounding boxes.
+  - `MASK`: Obscure detected text regions for privacy purposes.
+  - `EXPORT_TO_FOLDER`: Save processed images and metadata to a designated folder.
+  - `FLAG_FOR_REVIEW`: Mark images as needing further review by adding a "QUARANTINE" watermark.
+
+- **Flexible Configuration**:
+  - CLI arguments for dynamic bounding box constraints and folder paths.
+  - Supports customizable detectors and actions.
+
+- **Discrepancy Reporting**:
+  - Generate reports comparing results from multiple detectors.
+
+## Installation
+
+### Prerequisites
+
+1. **Java Development Kit (JDK)**: Ensure you have JDK 8 or higher installed.
+2. **Tesseract OCR**:
+   - Install Tesseract OCR on your system. For example:
+
+     ```bash
+     sudo apt-get install tesseract-ocr
+     ```
+
+   - Specify the Tesseract data path in CLI arguments or code configurations.
+3. **Dependencies**:
+   - Add the required dependencies to your `pom.xml` or equivalent build configuration:
+     - [Tesseract4J](https://github.com/nguyenq/tess4j)
+     - [Google Gson](https://github.com/google/gson)
 
 ## Usage
 
-### Prerequisites
-- Java 8 or later
-- Maven
-- [Tesseract OCR](https://github.com/tesseract-ocr/tessdata)
-- Llama 3.2 Vision model (optional, for cross-validation)
+### Running the Application
 
-### Setup and Run
+1. Compile and run the project:
 
-1. Install Tesseract:
-
-   ```sh
-   brew install tesseract
+   ```bash
+   javac -cp . com/tdiprima/visionguard/VisionGuard.java
+   java com.tdiprima.visionguard.VisionGuard <imagePath> <action> <outputPath> <reportPath> [options]
    ```
 
-2. Build the project:
+2. Example command:
 
-   ```sh
-   mvn clean install
+   ```bash
+   java VisionGuard input.jpg OUTLINE output/ report.txt --minWidth=20 --minHeight=20 --maxWidth=500 --maxHeight=500
    ```
 
-3. Run the program:
+### Actions
 
-   ```
-   Usage: java VisionGuard <imagePath> <action> <outputPath> <reportPath>
+| Action              | Description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `OUTLINE`           | Draw bounding boxes around detected text regions.                          |
+| `MASK`              | Obscure detected text regions.                                             |
+| `EXPORT_TO_FOLDER`  | Save the processed image along with metadata to the specified folder.       |
+| `FLAG_FOR_REVIEW`   | Add a "QUARANTINE" watermark and move the image to the quarantine folder.  |
 
-   Actions: OUTLINE, MASK, MOVE_TO_FOLDER, QUARANTINE
+### Optional Parameters
 
-   Optional parameters:
-     --minWidth=X         Minimum width of bounding boxes
-     --minHeight=Y        Minimum height of bounding boxes
-     --maxWidth=A         Maximum width of bounding boxes
-     --maxHeight=B        Maximum height of bounding boxes
-     --quarantinePath=path   Specify quarantine folder (action=QUARANTINE)
-     --moveToFolderPath=path Specify move-to-folder path (action=MOVE_TO_FOLDER)
-   ```
+| Parameter             | Description                                              | Default Value      |
+|-----------------------|----------------------------------------------------------|--------------------|
+| `--minWidth=X`        | Minimum width of bounding boxes.                         | `10`               |
+| `--minHeight=Y`       | Minimum height of bounding boxes.                        | `10`               |
+| `--maxWidth=A`        | Maximum width of bounding boxes.                         | `500`              |
+| `--maxHeight=B`       | Maximum height of bounding boxes.                        | `500`              |
+| `--quarantinePath=Z`  | Folder to save quarantined images.                       | `quarantine`       |
+| `--moveToFolderPath=W`| Folder to save processed images when using MOVE_TO_FOLDER.| `output`           |
 
-   #### Example (using Maven):
-   ```sh
-   mvn clean package
-   java -jar target/VisionGuard-1.0-jar-with-dependencies.jar /images/example.png OUTLINE output.png report.txt
-   ```
+## Project Structure
 
-4. Ensure you configure Tesseract's data path and language in the code:
+```
+com/tdiprima/visionguard/
+├── VisionGuard.java             # Main application entry point
+├── DetectorConfig.java          # Configuration loader for CLI arguments
+├── TextDetector.java            # Interface defining detector methods
+├── TesseractTextDetector.java   # Tesseract OCR-based implementation
+├── OllamaTextDetector.java      # External API-based implementation
+├── DetectorValidator.java       # Utility for validating and comparing detection results
+└── resources/                   # Resource files (e.g., Tesseract training data)
+```
 
-   ```java
-   detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata", "eng");
-   ```
+## Development
 
-### Supported Actions
+### Adding a New Detector
+1. Implement the `TextDetector` interface.
+2. Override methods for detection, configuration, and actions.
+3. Register the detector in `VisionGuard` via `ServiceLoader`.
 
-- **OUTLINE**: Draw bounding boxes around detected text.
-- **MASK**: Mask detected text regions in the image.
-- **MOVE_TO_FOLDER**: Organize processed images into a specified folder.
-- **QUARANTINE**: Isolate images containing sensitive data or OCR anomalies.
-
-### Input Requirements
-- Supported image formats: PNG, JPEG
-- Recommended image resolution: 300 DPI for best OCR performance.
-
-## Tools
-
-### Additional Utilities
-
-`parse_response_log.py`: A Python script to analyze results from the Ollama vision model. This optional tool assists in debugging and understanding model outputs.
-
-## Contributing
-
-Contributions are welcome! Fork the repository, create a branch, make your changes, and submit a pull request.
+### Extending Actions
+1. Add a new action to the `Action` enum in `TextDetector`.
+2. Implement the logic in each detector’s `applyAction` method.
+3. Update `VisionGuard` to handle the new action in its workflow.
 
 ## License
-
-Licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 <br>
