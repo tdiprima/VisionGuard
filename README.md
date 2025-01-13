@@ -15,6 +15,7 @@ VisionGuard is a robust image processing and text detection system designed to p
 
   - `OUTLINE`: Highlight detected text regions with bounding boxes.
   - `MASK`: Obscure detected text regions for privacy purposes.
+  - `BURN`: Apply a semi-transparent red overlay to detected text regions.
   - `EXPORT_TO_FOLDER`: Save processed images and metadata to a designated folder.
   - `FLAG_FOR_REVIEW`: Mark images as needing further review by adding a "QUARANTINE" watermark.
 
@@ -68,6 +69,7 @@ VisionGuard is a robust image processing and text detection system designed to p
 |---------------------|-----------------------------------------------------------------------------|
 | `OUTLINE`           | Draw bounding boxes around detected text regions.                          |
 | `MASK`              | Obscure detected text regions.                                             |
+| `BURN`              | Apply a semi-transparent red overlay to detected text regions.             |
 | `EXPORT_TO_FOLDER`  | Save the processed image along with metadata to the specified folder.       |
 | `FLAG_FOR_REVIEW`   | Add a "QUARANTINE" watermark and move the image to the quarantine folder.  |
 
