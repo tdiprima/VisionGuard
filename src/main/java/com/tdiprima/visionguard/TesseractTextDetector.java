@@ -104,7 +104,14 @@ public class TesseractTextDetector implements TextDetector {
                 break;
 
             case BURN:
-                BufferedImage burnedImage = burnTextRegions(result.modifiedImage, result.regions);
+                String extension = originalFileName.substring(originalFileName.lastIndexOf('.') + 1).toLowerCase();
+                BufferedImage burnedImage;
+                if (extension.equals("dcm") || extension.equals("dicom")) {
+                    burnedImage = burnDICOMTextRegions(result.modifiedImage, result.regions);
+                } else {
+                    burnedImage = burnTextRegions(result.modifiedImage, result.regions);
+                }
+                
                 saveImage(burnedImage, outputPath, originalFileName);
                 break;
 
@@ -226,25 +233,6 @@ public class TesseractTextDetector implements TextDetector {
         return maskedImage;
     }
 
-    // Utility to move an image to a specific folder
-    private void moveImageToFolder(BufferedImage image, String outputFolderPath, String originalFileName) {
-        File folder = new File(outputFolderPath);
-        if (!folder.exists() && !folder.mkdirs()) {
-            logger.log(Level.SEVERE, "Failed to create output folder: {0}", outputFolderPath);
-            return;
-        }
-
-        String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
-        String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
-        File outputFile = new File(folder, fileName);
-
-        try {
-            ImageIO.write(image, "png", outputFile);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to save image to folder: {0}", e.getMessage());
-        }
-    }
-
     private BufferedImage burnTextRegions(BufferedImage image, List<TextRegion> regions) {
         BufferedImage burnedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = burnedImage.createGraphics();
@@ -254,6 +242,34 @@ public class TesseractTextDetector implements TextDetector {
 
         for (TextRegion region : regions) {
             g2d.fillRect(region.x, region.y, region.width, region.height);
+        }
+
+        g2d.dispose();
+        return burnedImage;
+    }
+
+    private BufferedImage burnDICOMTextRegions(BufferedImage image, List<TextRegion> regions) {
+        BufferedImage burnedImage = new BufferedImage(
+                image.getWidth(),
+                image.getHeight(),
+                BufferedImage.TYPE_INT_ARGB
+        );
+        Graphics2D g2d = burnedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+
+        // Create a more visible effect for grayscale/DICOM
+        // Using a solid white fill with black border
+        g2d.setColor(Color.WHITE);
+        for (TextRegion region : regions) {
+            g2d.fillRect(region.x, region.y, region.width, region.height);
+
+            // Add black border for contrast
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(region.x, region.y, region.width, region.height);
+            g2d.drawRect(region.x + 1, region.y + 1, region.width - 2, region.height - 2);
+
+            // Reset to white for next region's fill
+            g2d.setColor(Color.WHITE);
         }
 
         g2d.dispose();
