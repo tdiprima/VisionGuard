@@ -3,8 +3,6 @@
 
 VisionGuard is a robust image processing and text detection system designed to process images, extract text, and apply various actions based on user-defined configurations. Leveraging the power of Tesseract OCR and external API integrations, VisionGuard provides a flexible and extensible platform for handling text detection tasks.
 
-![VisionGuard Workflow](VisionGuardWorkflow.png)
-
 ## Features
 
 - **Text Detection**:
