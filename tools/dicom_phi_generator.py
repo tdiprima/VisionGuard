@@ -17,10 +17,11 @@ def create_dicom_with_phi(output_filename="dicom_with_phi.dcm"):
     pil_img = Image.fromarray(blank_image)
     draw = ImageDraw.Draw(pil_img)
 
-    try:
-        font = ImageFont.truetype("Arial.ttf", size=12)
-    except IOError:
-        font = ImageFont.load_default()  # Fallback to default font
+    # try:
+    #     font = ImageFont.truetype("Arial.ttf", size=12)
+    # except IOError:
+    #     font = ImageFont.load_default()  # Fallback to default font
+    font = ImageFont.load_default()
 
     # Add dummy PHI (burned-in text)
     phi_text = [
@@ -48,7 +49,7 @@ def create_dicom_with_phi(output_filename="dicom_with_phi.dcm"):
     ds = FileDataset(output_filename, {}, file_meta=file_meta, preamble=b"\0" * 128)
 
     # Set DICOM metadata
-    ds.PatientName = "John^Doe"
+    ds.PatientName = "John Doe"
     ds.PatientID = "123456789"
     ds.PatientBirthDate = "19800101"
     ds.StudyDate = datetime.date.today().strftime("%Y%m%d")
