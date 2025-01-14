@@ -138,10 +138,16 @@ public class VisionGuard {
             try {
                 BufferedImage image = ImageIO.read(file);
                 if (image == null) {
-                    throw new IOException("Failed to load image. Skipping: " + file.getName());
+                    // throw new IOException("Failed to load image. Skipping: " + file.getName());
+                    System.out.println("Failed to load image. Skipping: " + file.getName());
+                    continue;
                 }
 
                 DetectionResult tesseractResult = tesseractDetector.detect(image, null);
+                if (tesseractResult.regions == null || tesseractResult.regions.isEmpty()) {
+                    System.out.println("No valid text detected. Skipping actions for: " + file.getName());
+                    continue;
+                }
                 DetectionResult ollamaResult = ollamaDetector != null ? ollamaDetector.detect(image, null) : null;
 
                 tesseractDetector.applyAction(action, tesseractResult, outputPath, file.getName());

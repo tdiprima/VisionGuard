@@ -28,6 +28,9 @@ public class TesseractTextDetector implements TextDetector {
 
     @Override
     public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
+        if (minWidth > maxWidth || minHeight > maxHeight) {
+            throw new IllegalArgumentException("Invalid bounding box constraints: min must be <= max.");
+        }
         this.minWidth = minWidth;
         this.minHeight = minHeight;
         this.maxWidth = maxWidth;
@@ -75,7 +78,8 @@ public class TesseractTextDetector implements TextDetector {
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error during Tesseract OCR: {0}", e.getMessage());
-            throw new RuntimeException("Unexpected error during OCR processing: " + e.getMessage(), e);
+            // throw new RuntimeException("Unexpected error during OCR processing: " + e.getMessage(), e);
+            return new DetectionResult(image, regions); // Return image with empty regions
         }
 
         return new DetectionResult(image, regions);
@@ -83,6 +87,11 @@ public class TesseractTextDetector implements TextDetector {
 
     @Override
     public void applyAction(Action action, DetectionResult result, String outputPath, String originalFileName) {
+        if (result.regions == null || result.regions.isEmpty()) {
+            logger.info("No valid text regions detected. Skipping action for: " + originalFileName);
+            return;
+        }
+
         switch (action) {
             case OUTLINE:
                 BufferedImage outlinedImage = outlineTextRegions(result.modifiedImage, result.regions);
