@@ -4,7 +4,8 @@ cd ..
 mvn clean package
 
 JAR="target/VisionGuard-1.0.jar"
-INPUT="src/main/resources/images/"
+#INPUT="src/main/resources/images/"
+INPUT="input/"
 OUTPUT="output/"
 REPORT="report/"
 ACTION="BURN"
