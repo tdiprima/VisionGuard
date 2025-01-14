@@ -1,17 +1,15 @@
 package com.tdiprima.visionguard;
 
+import java.awt.Graphics2D;
 import org.dcm4che3.data.*;
 import org.dcm4che3.io.DicomOutputStream;
-import org.dcm4che3.image.PhotometricInterpretation;
 import org.dcm4che3.util.UIDUtils;
-import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import javax.imageio.ImageIO;
-import static org.dcm4che3.data.Tag.PhotometricInterpretation;
 import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
 import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.dcm4che3.io.DicomInputStream;
@@ -52,15 +50,22 @@ public class DICOMImageReader {
         dataset.setDate(Tag.StudyTime, VR.TM, new Date());
         dataset.setString(Tag.Modality, VR.CS, "OT"); // Other
 
+        // Convert image to appropriate type for RGB DICOM
+        BufferedImage rgbImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D g = rgbImage.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+
         // Handle image dimensions and pixel data
-        int width = image.getWidth();
-        int height = image.getHeight();
+        int width = rgbImage.getWidth();
+        int height = rgbImage.getHeight();
         int samplesPerPixel = 3; // RGB
         int bitsAllocated = 8;
         int bitsStored = 8;
         int highBit = 7;
         int pixelRepresentation = 0; // Unsigned integers
 
+        // Set image-specific attributes
         dataset.setInt(Tag.Rows, VR.US, height);
         dataset.setInt(Tag.Columns, VR.US, width);
         dataset.setInt(Tag.SamplesPerPixel, VR.US, samplesPerPixel);
@@ -70,8 +75,8 @@ public class DICOMImageReader {
         dataset.setInt(Tag.HighBit, VR.US, highBit);
         dataset.setInt(Tag.PixelRepresentation, VR.US, pixelRepresentation);
 
-        // Extract pixel data
-        byte[] pixelData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        // Extract pixel data from the converted image
+        byte[] pixelData = ((DataBufferByte) rgbImage.getRaster().getDataBuffer()).getData();
         dataset.setBytes(Tag.PixelData, VR.OW, pixelData);
 
         // Write to DICOM file
