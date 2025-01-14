@@ -4,6 +4,8 @@ output.png
 *.txt
 report
 
+dependency-reduced-pom.xml
+
 # Netbeans
 nbactions.xml
 
