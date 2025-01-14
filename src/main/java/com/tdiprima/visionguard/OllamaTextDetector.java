@@ -25,8 +25,6 @@ public class OllamaTextDetector implements TextDetector {
 
     private String ollamaServerUrl;
     private static final Logger logger = Logger.getLogger(OllamaTextDetector.class.getName());
-    private String quarantineFolderPath = DEFAULT_QUARANTINE_FOLDER;
-    private String moveToFolderPath = DEFAULT_MOVE_FOLDER;
 
     @Override
     public void initialize(DetectorConfig config) {
