@@ -1,20 +1,20 @@
 package com.tdiprima.visionguard;
 
+import org.dcm4che3.data.*;
+import org.dcm4che3.io.DicomOutputStream;
+import org.dcm4che3.image.PhotometricInterpretation;
+import org.dcm4che3.util.UIDUtils;
 import java.awt.image.BufferedImage;
-import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
-import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
-import javax.imageio.ImageIO;
+import java.awt.image.DataBufferByte;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import org.dcm4che3.data.Attributes;
-import org.dcm4che3.data.Tag;
-import org.dcm4che3.data.UID;
-import org.dcm4che3.data.VR;
-import org.dcm4che3.image.BufferedImageUtils;
+import javax.imageio.ImageIO;
+import static org.dcm4che3.data.Tag.PhotometricInterpretation;
+import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
+import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.dcm4che3.io.DicomInputStream;
-import org.dcm4che3.io.DicomOutputStream;
-import org.dcm4che3.util.UIDUtils;
 
 /**
  * Reads a DICOM image file and converts it to a BufferedImage
@@ -41,18 +41,41 @@ public class DICOMImageReader {
     }
 
     public static void saveBufferedImageAsDICOM(BufferedImage image, File dicomFile) throws IOException {
-        // Example implementation using dcm4che:
+        Attributes dataset = new Attributes();
+
+        // Set essential DICOM attributes
+        dataset.setString(Tag.SOPClassUID, VR.UI, UID.SecondaryCaptureImageStorage);
+        dataset.setString(Tag.SOPInstanceUID, VR.UI, UIDUtils.createUID());
+        dataset.setString(Tag.PatientName, VR.PN, "Anonymous");
+        dataset.setString(Tag.PatientID, VR.LO, "12345");
+        dataset.setDate(Tag.StudyDate, VR.DA, new Date());
+        dataset.setDate(Tag.StudyTime, VR.TM, new Date());
+        dataset.setString(Tag.Modality, VR.CS, "OT"); // Other
+
+        // Handle image dimensions and pixel data
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int samplesPerPixel = 3; // RGB
+        int bitsAllocated = 8;
+        int bitsStored = 8;
+        int highBit = 7;
+        int pixelRepresentation = 0; // Unsigned integers
+
+        dataset.setInt(Tag.Rows, VR.US, height);
+        dataset.setInt(Tag.Columns, VR.US, width);
+        dataset.setInt(Tag.SamplesPerPixel, VR.US, samplesPerPixel);
+        dataset.setString(Tag.PhotometricInterpretation, VR.CS, "RGB");
+        dataset.setInt(Tag.BitsAllocated, VR.US, bitsAllocated);
+        dataset.setInt(Tag.BitsStored, VR.US, bitsStored);
+        dataset.setInt(Tag.HighBit, VR.US, highBit);
+        dataset.setInt(Tag.PixelRepresentation, VR.US, pixelRepresentation);
+
+        // Extract pixel data
+        byte[] pixelData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        dataset.setBytes(Tag.PixelData, VR.OW, pixelData);
+
+        // Write to DICOM file
         try (DicomOutputStream dos = new DicomOutputStream(dicomFile)) {
-            // Create a minimal DICOM structure
-            Attributes dataset = new Attributes();
-            dataset.setString(Tag.SOPClassUID, VR.UI, UID.SecondaryCaptureImageStorage);
-            dataset.setString(Tag.SOPInstanceUID, VR.UI, UIDUtils.createUID());
-            dataset.setDate(Tag.InstanceCreationDate, new Date());
-            dataset.setDate(Tag.InstanceCreationTime, new Date());
-
-            // Encode BufferedImage into pixel data
-            BufferedImageUtils.writeToDataset(dataset, image);
-
             dos.writeDataset(dataset.createFileMetaInformation(UID.ImplicitVRLittleEndian), dataset);
         }
     }
