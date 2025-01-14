@@ -162,6 +162,10 @@ public class VisionGuard {
 
                 tesseractDetector.applyAction(action, tesseractResult, outputPath, file.getName());
 
+                if (ollamaDetector != null) {
+                    ollamaDetector.applyAction(action, tesseractResult, outputPath, file.getName());
+                }
+
                 String individualReportPath = reportPath + "/" + file.getName() + "_report.txt";
                 DetectorValidator.validate(tesseractResult, ollamaResult, individualReportPath);
 

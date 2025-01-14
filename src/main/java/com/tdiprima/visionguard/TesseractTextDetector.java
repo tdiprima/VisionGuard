@@ -195,12 +195,16 @@ public class TesseractTextDetector implements TextDetector {
 
     // Utility to save an image to disk
     private void saveImage(BufferedImage image, String outputPath, String originalFileName) {
-        String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
-        String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
-        File outputFile = new File(outputPath, fileName);
+        String extension = originalFileName.substring(originalFileName.lastIndexOf('.') + 1).toLowerCase();
+        String baseName = originalFileName.substring(0, originalFileName.lastIndexOf('.'));
+        File outputFile = new File(outputPath, baseName + "." + extension);
 
         try {
-            ImageIO.write(image, "png", outputFile);
+            if (extension.equals("dcm") || extension.equals("dicom")) {
+                DICOMImageReader.saveBufferedImageAsDICOM(image, outputFile);
+            } else {
+                ImageIO.write(image, extension, outputFile);
+            }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to save image: {0}", e.getMessage());
         }

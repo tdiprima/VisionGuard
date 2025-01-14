@@ -161,16 +161,19 @@ public class OllamaTextDetector implements TextDetector {
             return;
         }
 
-        String baseName = originalFileName.replaceAll("\\.\\w+$", ""); // Strip extension
-        String fileName = baseName + "_" + System.currentTimeMillis() + ".png";
-        File outputFile = new File(folder, fileName);
+        String extension = originalFileName.substring(originalFileName.lastIndexOf('.') + 1).toLowerCase();
+        String baseName = originalFileName.substring(0, originalFileName.lastIndexOf('.'));
+        File outputFile = new File(outputPath, baseName + "." + extension);
 
         try {
-            // Save the image
-            ImageIO.write(image, "png", outputFile);
+            if (extension.equals("dcm") || extension.equals("dicom")) {
+                DICOMImageReader.saveBufferedImageAsDICOM(image, outputFile);
+            } else {
+                ImageIO.write(image, extension, outputFile);
+            }
 
             // Save raw response
-            File metadataFile = new File(folder, baseName + "_" + System.currentTimeMillis() + ".txt");
+            File metadataFile = new File(outputPath, baseName + "_metadata.txt");
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(metadataFile))) {
                 writer.write("Ollama Response:\n" + rawResponse);
             }

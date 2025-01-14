@@ -6,7 +6,15 @@ import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
+import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.Tag;
+import org.dcm4che3.data.UID;
+import org.dcm4che3.data.VR;
+import org.dcm4che3.image.BufferedImageUtils;
 import org.dcm4che3.io.DicomInputStream;
+import org.dcm4che3.io.DicomOutputStream;
+import org.dcm4che3.util.UIDUtils;
 
 /**
  * Reads a DICOM image file and converts it to a BufferedImage
@@ -31,4 +39,22 @@ public class DICOMImageReader {
         }
 
     }
+
+    public static void saveBufferedImageAsDICOM(BufferedImage image, File dicomFile) throws IOException {
+        // Example implementation using dcm4che:
+        try (DicomOutputStream dos = new DicomOutputStream(dicomFile)) {
+            // Create a minimal DICOM structure
+            Attributes dataset = new Attributes();
+            dataset.setString(Tag.SOPClassUID, VR.UI, UID.SecondaryCaptureImageStorage);
+            dataset.setString(Tag.SOPInstanceUID, VR.UI, UIDUtils.createUID());
+            dataset.setDate(Tag.InstanceCreationDate, new Date());
+            dataset.setDate(Tag.InstanceCreationTime, new Date());
+
+            // Encode BufferedImage into pixel data
+            BufferedImageUtils.writeToDataset(dataset, image);
+
+            dos.writeDataset(dataset.createFileMetaInformation(UID.ImplicitVRLittleEndian), dataset);
+        }
+    }
+
 }
