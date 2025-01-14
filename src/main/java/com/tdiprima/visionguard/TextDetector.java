@@ -59,7 +59,7 @@ public interface TextDetector {
     }
 
     // Process an image and return detection results
-    DetectionResult detect(BufferedImage image, Object metadata);
+    DetectionResult detect(BufferedImage image);
 
     // Configure the detector with parameters
     void setupParameters(String... params);

@@ -55,7 +55,7 @@ public class TesseractTextDetector implements TextDetector {
     }
 
     @Override
-    public DetectionResult detect(BufferedImage image, Object dicomMetadata) {
+    public DetectionResult detect(BufferedImage image) {
         List<TextRegion> regions = new ArrayList<>();
 
         try {

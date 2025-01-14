@@ -46,10 +46,10 @@ public class OllamaTextDetector implements TextDetector {
     }
 
     @Override
-    public DetectionResult detect(BufferedImage image, Object metadata) {
+    public DetectionResult detect(BufferedImage image) {
         String response = "";
         try {
-            // Encode the image to Base64
+            // Encode the image to Base64 (convert to PNG for Ollama compatibility)
             String base64Image = encodeImageToBase64(image);
             if (base64Image == null) {
                 throw new IllegalArgumentException("Failed to encode image to Base64.");

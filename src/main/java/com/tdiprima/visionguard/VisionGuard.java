@@ -94,7 +94,7 @@ public class VisionGuard {
             System.err.println("The specified path is not a directory: " + directoryPath);
             return null;
         }
-        return directory.listFiles((dir, name) -> name.matches(".*\\.(jpg|jpeg|png|bmp)$"));
+        return directory.listFiles((dir, name) -> name.matches(".*\\.(jpg|jpeg|png|bmp|dicom|dcm)$"));
     }
 
     private static void ensureDirectoryExists(String path) {
@@ -135,20 +135,30 @@ public class VisionGuard {
             TextDetector.Action action, String outputPath, String reportPath) {
         for (File file : files) {
             System.out.println("Processing file: " + file.getName());
+
             try {
-                BufferedImage image = ImageIO.read(file);
+                BufferedImage image;
+
+                // Detect file type and preprocess DICOM if necessary
+                if (file.getName().toLowerCase().endsWith(".dcm") || file.getName().toLowerCase().endsWith(".dicom")) {
+                    image = DICOMImageReader.readDICOMAsBufferedImage(file);
+                } else {
+                    image = ImageIO.read(file);
+                }
+
                 if (image == null) {
                     // throw new IOException("Failed to load image. Skipping: " + file.getName());
                     System.out.println("Failed to load image. Skipping: " + file.getName());
                     continue;
                 }
 
-                DetectionResult tesseractResult = tesseractDetector.detect(image, null);
+                // Run detection and actions
+                DetectionResult tesseractResult = tesseractDetector.detect(image);
                 if (tesseractResult.regions == null || tesseractResult.regions.isEmpty()) {
                     System.out.println("No valid text detected. Skipping actions for: " + file.getName());
                     continue;
                 }
-                DetectionResult ollamaResult = ollamaDetector != null ? ollamaDetector.detect(image, null) : null;
+                DetectionResult ollamaResult = ollamaDetector != null ? ollamaDetector.detect(image) : null;
 
                 tesseractDetector.applyAction(action, tesseractResult, outputPath, file.getName());
 
