@@ -24,14 +24,12 @@ public class TesseractTextDetector implements TextDetector {
     private int maxHeight = DEFAULT_MAX_HEIGHT;
 
     @Override
-    public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
-        if (minWidth > maxWidth || minHeight > maxHeight) {
-            throw new IllegalArgumentException("Invalid bounding box constraints: min must be <= max.");
+    public void setupParameters(String... params) {
+        tesseract = new Tesseract();
+        tesseract.setDatapath(params[0]); // Path to Tesseract data
+        if (params.length > 1) {
+            tesseract.setLanguage(params[1]); // Language (e.g., "eng")
         }
-        this.minWidth = minWidth;
-        this.minHeight = minHeight;
-        this.maxWidth = maxWidth;
-        this.maxHeight = maxHeight;
     }
 
     @Override
@@ -42,13 +40,16 @@ public class TesseractTextDetector implements TextDetector {
         this.maxHeight = config.maxHeight;
     }
 
+    // Dynamically change constraints after initialization
     @Override
-    public void setupParameters(String... params) {
-        tesseract = new Tesseract();
-        tesseract.setDatapath(params[0]); // Path to Tesseract data
-        if (params.length > 1) {
-            tesseract.setLanguage(params[1]); // Language (e.g., "eng")
+    public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
+        if (minWidth > maxWidth || minHeight > maxHeight) {
+            throw new IllegalArgumentException("Invalid bounding box constraints: min must be <= max.");
         }
+        this.minWidth = minWidth;
+        this.minHeight = minHeight;
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
     }
 
     @Override
@@ -75,7 +76,6 @@ public class TesseractTextDetector implements TextDetector {
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Unexpected error during Tesseract OCR: {0}", e.getMessage());
-            // throw new RuntimeException("Unexpected error during OCR processing: " + e.getMessage(), e);
             return new DetectionResult(image, regions); // Return image with empty regions
         }
 
@@ -91,7 +91,7 @@ public class TesseractTextDetector implements TextDetector {
 
         switch (action) {
             case OUTLINE:
-                BufferedImage outlinedImage = ImageUtils.outlineTextRegions(result.modifiedImage, result.regions);
+                BufferedImage outlinedImage = ImageUtils.outlineTextRegions(result.modifiedImage, result.regions, originalFileName);
                 ImageUtils.saveImage(outlinedImage, outputPath, originalFileName);
                 break;
 
@@ -108,7 +108,7 @@ public class TesseractTextDetector implements TextDetector {
                 } else {
                     burnedImage = ImageUtils.burnTextRegions(result.modifiedImage, result.regions);
                 }
-                
+
                 ImageUtils.saveImage(burnedImage, outputPath, originalFileName);
                 break;
 

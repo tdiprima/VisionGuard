@@ -15,22 +15,29 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
 /**
- * A a utility class that provides methods for image processing tasks, such as 
- * outlining text regions, adding watermarks, masking or burning specific areas, 
+ * A utility class that provides methods for image processing tasks, such as
+ * outlining text regions, adding watermarks, masking or burning specific areas,
  * and saving images with metadata.
- * 
+ *
  * @author tdiprima
  */
 public class ImageUtils {
+
     private static final Logger logger = Logger.getLogger(ImageUtils.class.getName());
-    
+
     // Utility to draw bounding boxes on the image
-    public static BufferedImage outlineTextRegions(BufferedImage image, List<TextDetector.TextRegion> regions) {
+    public static BufferedImage outlineTextRegions(BufferedImage image, List<TextDetector.TextRegion> regions, String fileName) {
         BufferedImage outlinedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = outlinedImage.createGraphics();
         g2d.drawImage(image, 0, 0, null);
 
-        g2d.setColor(new Color(255, 0, 0, 128)); // Red semi-transparent
+        // Check if the file is DICOM based on the extension
+        String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+        if (extension.equals("dcm") || extension.equals("dicom")) {
+            g2d.setColor(new Color(255, 255, 255, 255)); // White border for DICOM
+        } else {
+            g2d.setColor(new Color(255, 0, 0, 128)); // Red semi-transparent for others
+        }
 
         if (regions == null || regions.isEmpty()) {
             System.out.println("No regions to outline.");
@@ -39,7 +46,6 @@ public class ImageUtils {
         }
 
         for (TextDetector.TextRegion region : regions) {
-            // System.out.printf("Drawing bounding box: x=%d, y=%d, width=%d, height=%d%n", region.x, region.y, region.width, region.height)
             g2d.drawRect(region.x, region.y, region.width, region.height);
         }
 

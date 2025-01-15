@@ -23,6 +23,14 @@ public class OllamaTextDetector implements TextDetector {
     private static final Logger logger = Logger.getLogger(OllamaTextDetector.class.getName());
 
     @Override
+    public void setupParameters(String... params) {
+        if (params.length < 1) {
+            throw new IllegalArgumentException("Ollama server URL is required.");
+        }
+        this.ollamaServerUrl = params[0];
+    }
+
+    @Override
     public void initialize(DetectorConfig config) {
         // No configuration required beyond server URL setup
     }
@@ -30,14 +38,6 @@ public class OllamaTextDetector implements TextDetector {
     @Override
     public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
         // Ollama doesn't return bounding boxes (vision model is not good at it)
-    }
-
-    @Override
-    public void setupParameters(String... params) {
-        if (params.length < 1) {
-            throw new IllegalArgumentException("Ollama server URL is required.");
-        }
-        this.ollamaServerUrl = params[0];
     }
 
     @Override

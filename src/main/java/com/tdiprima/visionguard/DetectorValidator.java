@@ -31,7 +31,7 @@ public class DetectorValidator {
             if (ollamaResult != null) {
                 writer.write("\n*** Ollama Response ***\n\n");
                 if (ollamaResult.rawResponse != null && !ollamaResult.rawResponse.isEmpty()) {
-                    writer.write("Raw Ollama Response: " + ollamaResult.rawResponse + "\n");
+//                    writer.write("Raw Ollama Response: " + ollamaResult.rawResponse + "\n");
 
                     // Extract meaningful text from Ollama response if required
                     List<String> ollamaTexts = extractTextFromOllamaResponse(ollamaResult.rawResponse);

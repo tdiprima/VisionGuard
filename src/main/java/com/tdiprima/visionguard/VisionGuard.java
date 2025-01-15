@@ -117,7 +117,6 @@ public class VisionGuard {
         }
         detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng");
         detector.initialize(config);
-        detector.setBoundingBoxConstraints(config.minWidth, config.minHeight, config.maxWidth, config.maxHeight);
         return detector;
     }
 
