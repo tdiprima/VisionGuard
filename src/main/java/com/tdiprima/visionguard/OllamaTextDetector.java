@@ -30,7 +30,6 @@ public class OllamaTextDetector implements TextDetector {
     @Override
     public void setBoundingBoxConstraints(int minWidth, int minHeight, int maxWidth, int maxHeight) {
         // Ollama doesn't return bounding boxes (vision model is not good at it)
-        logger.warning("Bounding box constraints are not applicable for OllamaTextDetector.");
     }
 
     @Override
