@@ -115,7 +115,8 @@ public class VisionGuard {
             System.err.println("Failed to load TesseractTextDetector.");
             System.exit(1);
         }
-        detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng");
+        detector.setupParameters("/usr/local/Cellar/tesseract/5.5.0/share/tessdata/", "eng"); // macOS
+//        detector.setupParameters("/usr/share/tesseract/tessdata", "eng"); // rhel
         detector.initialize(config);
         return detector;
     }
