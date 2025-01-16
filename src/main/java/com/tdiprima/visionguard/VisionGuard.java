@@ -32,7 +32,6 @@ public class VisionGuard {
         String actionStr = args[1].toUpperCase();
         String outputPath = args[2];
         String reportPath = args[3];
-        boolean enableOllama = parseOptionalFlag(args, "--ollama", false);
 
         TextDetector.Action action = parseAction(actionStr);
         if (action == null) {
@@ -52,7 +51,7 @@ public class VisionGuard {
 
         // Initialize detectors
         TextDetector tesseractDetector = initializeTesseract(config);
-        TextDetector ollamaDetector = enableOllama ? initializeOllama() : null;
+        TextDetector ollamaDetector = config.enableOllama ? initializeOllama() : null;
 
         processFiles(imageFiles, tesseractDetector, ollamaDetector, action, outputPath, reportPath);
 
@@ -68,15 +67,6 @@ public class VisionGuard {
         System.out.println("  --minHeight=Y        Minimum height of bounding boxes");
         System.out.println("  --maxWidth=A         Maximum width of bounding boxes");
         System.out.println("  --maxHeight=B        Maximum height of bounding boxes");
-    }
-
-    private static boolean parseOptionalFlag(String[] args, String flag, boolean defaultValue) {
-        for (String arg : args) {
-            if (arg.startsWith(flag + "=")) {
-                return Boolean.parseBoolean(arg.split("=")[1]);
-            }
-        }
-        return defaultValue;
     }
 
     private static TextDetector.Action parseAction(String actionStr) {
@@ -147,7 +137,6 @@ public class VisionGuard {
                 }
 
                 if (image == null) {
-                    // throw new IOException("Failed to load image. Skipping: " + file.getName());
                     System.out.println("Failed to load image. Skipping: " + file.getName());
                     continue;
                 }
