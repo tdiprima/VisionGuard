@@ -24,7 +24,8 @@ def contains_burned_in_text(dicom):
 
 def redact_dicom(file_path, output_path):
     """
-    Read a DICOM file, redact metadata, and optionally redact burned-in text.
+    Read a DICOM file, redact metadata including dates and times, 
+    and optionally redact burned-in text.
 
     Args:
         file_path: Path to the input DICOM file.
@@ -66,6 +67,13 @@ def redact_dicom(file_path, output_path):
     for field in phi_fields:
         if field in dicom:
             dicom.data_element(field).value = "REDACTED"
+
+    # Redact dates and times
+    date_time_fields = ["StudyDate", "SeriesDate", "AcquisitionDate", "ContentDate", "StudyTime", "SeriesTime",
+        "AcquisitionTime", "ContentTime"]
+    for field in date_time_fields:
+        if field in dicom:
+            dicom.data_element(field).value = "00000000" if "Date" in field else "000000.000000"
 
     # Save the redacted DICOM file
     dicom.save_as(output_path)

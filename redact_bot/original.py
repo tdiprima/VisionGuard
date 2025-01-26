@@ -69,6 +69,13 @@ def redact_dicom(file_path, output_path):
         if field in dicom:
             dicom.data_element(field).value = "REDACTED"
 
+    # Redact dates and times
+    date_time_fields = ["StudyDate", "SeriesDate", "AcquisitionDate", "ContentDate", "StudyTime", "SeriesTime",
+        "AcquisitionTime", "ContentTime"]
+    for field in date_time_fields:
+        if field in dicom:
+            dicom.data_element(field).value = "00000000" if "Date" in field else "000000.000000"
+
     # Save the redacted DICOM file
     dicom.save_as(output_path)
 
