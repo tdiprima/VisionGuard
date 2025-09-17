@@ -3,7 +3,7 @@
 <!-- dcmdjpeg file.dcm decompressed.dcm -->
 # VisionGuard
 
-VisionGuard is a robust image processing and text detection system designed to process images, extract text, and apply various actions based on user-defined configurations. Leveraging the power of Tesseract OCR and external API integrations, VisionGuard provides a flexible and extensible platform for handling text detection tasks.
+VisionGuard is a medical image privacy protection system that detects and redacts sensitive text content from medical images, including DICOM files. Named "VisionGuard" because it acts as a guardian for visual medical data, the system identifies burned-in text, patient identifiers, dates, and other PHI (Protected Health Information) that may be embedded in medical images, then applies protective actions like masking, outlining, or quarantining to safeguard patient privacy and ensure HIPAA compliance.
 
 ## Features
 

@@ -80,7 +80,7 @@ def redact_dicom(file_path, output_path):
 
 
 # Example usage
-input_file = "../input/decompressed.dcm"
+input_file = "../input/dicom_file_1.dcm"
 output_file = "output_redacted.dcm"
 redact_dicom(input_file, output_file)
 print(f"Redacted DICOM saved to {output_file}")
